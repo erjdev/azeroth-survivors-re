@@ -12,6 +12,15 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Shred integration — 2026-11-04
+
+Shred is an acquired Cat-only normalized physical attack with no positioning or
+combo requirement. Improved Shred modifies recovery, and broad physical/feral
+talents include the new attack while their narrower peers retain explicit scope.
+[Runtime, selected-build UI and restart evidence](audits/DRUID-SHRED.md) advances
+Druid definitions to 40/47, overall 334/432. Attended acquisition/combat and
+platform acceptance remain open; Cat's starting kit remains two slotted abilities.
+
 ## Omen of Clarity — 2026-11-03
 
 Omen now converts effective feral hits into one independent extra Wrath, with

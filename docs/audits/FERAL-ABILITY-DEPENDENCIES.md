@@ -137,3 +137,11 @@ talents are not silently expanded by this checkpoint.
 Claws and Leader of the Pack to Rake/Swipe, superseding their automatic-only
 scope in earlier checkpoints. Predatory Strikes remains automatic-only. Other
 feral redesigns and attended combat/platform validation remain open.
+
+## Shred consumer — 2026-11-04
+
+[Shred and Improved Shred](DRUID-SHRED.md) now supply Cat-only normal acquisition,
+normalized physical settlement and recovery without positional/combo/resources.
+Broad physical, critical, feral recovery and Omen scopes now include Shred; narrow
+Ferocity/Savage Fury stay on their four named attacks. This supersedes Shred’s
+missing-consumer status above. Remaining attacks/control/procs remain open.

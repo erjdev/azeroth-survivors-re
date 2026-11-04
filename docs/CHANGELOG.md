@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-04 — Cat Shred and recovery training
+
+Cat builds can acquire Shred without positioning or combo requirements. Improved
+Shred reduces recovery; broad feral talents include its physical attacks. Selected
+build cards show inline upgrades, and purchase/refund plus compact restart pass.
+[Rules and limits](audits/DRUID-SHRED.md).
+
+![Shred inline upgrade](images/screenshots/2026-11-04-shred/card-wide.jpg)
+
 ## 2026-11-03 — Omen’s extra Wrath
 
 Feral hits can now trigger an extra Wrath with a haste-scaled internal cooldown.

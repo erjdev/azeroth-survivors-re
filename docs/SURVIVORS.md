@@ -14,9 +14,19 @@ current enemy counts. The Armory is the account, opened before a run and closed 
 The implementation phases, architecture, validation requirements and acceptance criteria are
 in [the implementation contract](SURVIVORS-IMPLEMENTATION.md).
 
+## Shred
+
+Cat can acquire Shred through normal level-up cards: 36 base physical damage,
+five-yard range, five-second recovery, no positional/combo/resource requirement.
+Improved Shred provides 10% shorter recovery per rank (two ranks), without
+learning the ability. It occupies a normal slot when acquired and does not add
+to Cat's starting kit. Broad physical/recovery talents include Shred; Ferocity,
+Savage Fury and automatic-only Predatory Strikes retain their named scopes.
+[Details and evidence](audits/DRUID-SHRED.md).
+
 ## Omen of Clarity
 
-Effective original Claw/Maul/Rake/Swipe hits have a 10% chance to fire extra
+Effective original Claw/Maul/Rake/Swipe/Shred hits have a 10% chance to fire extra
 Wrath, using its owned rank or rank one. A separate five-second internal cooldown
 is reduced by haste. The proc consumes no slot, leaves normal timers unchanged,
 and excludes bleeds, pets and generated hits. Missing targets do not bank charges.
@@ -24,7 +34,7 @@ and excludes bleeds, pets and generated hits. Missing targets do not bank charge
 
 ## Permanent feral recovery talents
 
-Feral Instinct grants 3% shorter Claw/Maul/Rake/Swipe cooldown per rank; Furor
+Feral Instinct grants 3% shorter Claw/Maul/Rake/Swipe/Shred cooldown per rank; Furor
 grants 2% per rank. Each has five ranks and requires permanent Cat or Bear.
 Bonuses multiply existing recovery and haste, remain active throughout a run,
 and do not change caster spells, damage or slots. These replace threat/stealth

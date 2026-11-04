@@ -1104,6 +1104,15 @@ pub static ABILITIES: &[AbilityDef] = &[
     // --- Druid ---
     // Survivors feral attacks use normalized damage and no resource/position prerequisites.
     ability!(
+        "shred",
+        5221,
+        Melee {
+            damage: 36.0,
+            cooldown: 5.0,
+            range: 5.0
+        }
+    ),
+    ability!(
         "rake",
         1822,
         Melee {
@@ -1599,6 +1608,7 @@ pub static CLASSES: &[ClassDef] = &[
         pool: &[
             "rake",
             "swipe",
+            "shred",
             "wrath",
             "moonfire",
             "starfire",

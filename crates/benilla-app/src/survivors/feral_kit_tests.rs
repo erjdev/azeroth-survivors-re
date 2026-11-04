@@ -41,7 +41,11 @@ fn forms_gate_actual_casts_and_rake_settles_a_separate_noncritical_bleed() {
         Some(DruidForm::Moonkin),
         Some(DruidForm::TreeOfLife),
     ] {
-        for (key, required) in [("rake", DruidForm::Cat), ("swipe", DruidForm::Bear)] {
+        for (key, required) in [
+            ("rake", DruidForm::Cat),
+            ("swipe", DruidForm::Bear),
+            ("shred", DruidForm::Cat),
+        ] {
             let (mut app, target) = setup(form, key);
             app.world_mut().run_system_once(cast_abilities).unwrap();
             let hits: Vec<_> = app
@@ -173,7 +177,11 @@ fn ferocity_and_fury_affect_real_casts_bleeds_and_automatic_attacks() {
 
 #[test]
 fn physical_training_scales_feral_casts_and_criticals_without_critical_bleeds() {
-    for (form, key) in [(DruidForm::Cat, "rake"), (DruidForm::Bear, "swipe")] {
+    for (form, key) in [
+        (DruidForm::Cat, "rake"),
+        (DruidForm::Bear, "swipe"),
+        (DruidForm::Cat, "shred"),
+    ] {
         for (claws, leader, bonus) in [(0, 0, 0.0), (3, 0, 0.06), (0, 1, 0.03), (3, 1, 0.09)] {
             for margin in [0.01, 0.04, 0.075, 0.10] {
                 let (mut app, target) = setup(Some(form), key);
@@ -210,7 +218,7 @@ fn physical_training_scales_feral_casts_and_criticals_without_critical_bleeds() 
                 let expected = data::ability(key).damage
                     * stats.might
                     * 1.1
-                    * 1.2
+                    * if key == "shred" { 1.0 } else { 1.2 }
                     * if hit.crit { stats.crit_damage } else { 1.0 };
                 assert!((hit.damage - expected).abs() < 0.001);
                 let before = app.world().get::<Enemy>(target).unwrap().hp;
@@ -255,7 +263,7 @@ fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_at
             app.world_mut().run_system_once(cast_abilities).unwrap();
             let factor = match key {
                 "rejuvenation" | "regrowth" | "healing_touch" | "tranquility" => 0.9 * 0.94,
-                "rake" | "swipe" => 1.0,
+                "rake" | "swipe" | "shred" => 1.0,
                 _ => 0.94,
             };
             let expected = if key == "tranquility" {
@@ -274,7 +282,7 @@ fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_at
 #[test]
 fn permanent_form_recovery_reaches_independent_spell_and_automatic_timers() {
     for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
-        for key in ["wrath", "rejuvenation", "rake", "swipe"] {
+        for key in ["wrath", "rejuvenation", "rake", "swipe", "shred"] {
             let (mut app, _) = setup(form, key);
             if !app
                 .world()
@@ -301,7 +309,7 @@ fn permanent_form_recovery_reaches_independent_spell_and_automatic_timers() {
             let run = app.world().resource::<Run>();
             let mut factor = if form.is_some() { 0.94 } else { 1.0 };
             if matches!(form, Some(DruidForm::Cat | DruidForm::Bear))
-                && matches!(key, "rake" | "swipe")
+                && matches!(key, "rake" | "swipe" | "shred")
             {
                 factor *= 0.85 * 0.9;
             }
@@ -320,6 +328,41 @@ fn permanent_form_recovery_reaches_independent_spell_and_automatic_timers() {
             } else {
                 assert_eq!(run.weapon_attack_cd, 0.0);
             }
+        }
+    }
+}
+
+#[test]
+fn shred_has_no_positional_requirement_and_uses_range_and_recovery_bonuses() {
+    for (x, area, should_hit) in [
+        (3., 0., true),
+        (-3., 0., true),
+        (8., 0., false),
+        (8., 1., true),
+    ] {
+        let (mut app, target) = setup(Some(DruidForm::Cat), "shred");
+        app.world_mut()
+            .get_mut::<Transform>(target)
+            .unwrap()
+            .translation = Vec3::X * x;
+        let expected;
+        {
+            let mut run = app.world_mut().resource_mut::<Run>();
+            run.bonus.area = area;
+            run.milestones = run.milestones.with_ranks(&[(1, 1_000_001, 1), (1, 802, 2)]);
+            expected =
+                super::super::sheet::cooldown_time(5., run.stats().haste, run.stats().cooldown)
+                    * 0.8;
+        }
+        app.world_mut().run_system_once(cast_abilities).unwrap();
+        let hits = app.world().resource::<Messages<Hit>>();
+        assert_eq!(hits.len(), usize::from(should_hit));
+        if should_hit {
+            let hit = hits.iter_current_update_messages().next().unwrap();
+            assert_eq!(hit.source, "shred");
+            assert_eq!(hit.color, COLOR_MELEE);
+            assert_eq!(hit.dot, 0.);
+            assert!((app.world().resource::<Run>().abilities[0].cd - expected).abs() < 0.001);
         }
     }
 }

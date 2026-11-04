@@ -15,18 +15,20 @@ const CASTER_SPELLS: &[&str] = &[
 ];
 const HEALING_SPELLS: &[&str] = &["rejuvenation", "regrowth", "healing_touch", "tranquility"];
 const FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe"];
+const ALL_FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe", "shred"];
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
-    TalentDefinition { id: 788, max_rank: 1, name: "Omen of Clarity", description: "Effective Claw, Maul, Rake and Swipe hits: 10% chance to fire extra Wrath. Internal cooldown: 5 sec, reduced by haste. Uses owned Wrath rank or rank 1; takes no slot and leaves normal attack timers unchanged. Excludes bleeds, pets, splash copies and generated hits; no stored charges (Survivors Clearcasting conversion)", stat: TalentStat::OmenOfClarity, per_rank: 0.10 },
-    TalentDefinition { id: 799, max_rank: 5, name: "Feral Instinct", description: "While Cat or Bear is selected: Claw, Maul, Rake and Swipe have 3% shorter cooldown per rank, multiplying other recovery bonuses. No benefit to caster spells or other forms (Survivors threat and stealth conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.03 },
-    TalentDefinition { id: 822, max_rank: 5, name: "Furor", description: "While Cat or Bear is selected: Claw, Maul, Rake and Swipe have 2% shorter cooldown per rank, multiplying other recovery bonuses. Active throughout the run; no benefit to caster spells or other forms (Survivors Rage/Energy conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.02 },
+    TalentDefinition { id: 802, max_rank: 2, name: "Improved Shred", description: "Shred: 10% shorter cooldown per rank, multiplying haste and other recovery bonuses. Does not grant the spell; requires Cat for Shred (Survivors Energy-cost conversion)", stat: TalentStat::SpellCooldown("shred"), per_rank: 0.10 },
+    TalentDefinition { id: 788, max_rank: 1, name: "Omen of Clarity", description: "Effective Claw, Maul, Rake, Swipe and Shred hits: 10% chance to fire extra Wrath. Internal cooldown: 5 sec, reduced by haste. Uses owned Wrath rank or rank 1; takes no slot and leaves normal attack timers unchanged. Excludes bleeds, pets, splash copies and generated hits; no stored charges (Survivors Clearcasting conversion)", stat: TalentStat::OmenOfClarity, per_rank: 0.10 },
+    TalentDefinition { id: 799, max_rank: 5, name: "Feral Instinct", description: "While Cat or Bear is selected: Claw, Maul, Rake, Swipe and Shred have 3% shorter cooldown per rank, multiplying other recovery bonuses. No benefit to caster spells or other forms (Survivors threat and stealth conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.03 },
+    TalentDefinition { id: 822, max_rank: 5, name: "Furor", description: "While Cat or Bear is selected: Claw, Maul, Rake, Swipe and Shred have 2% shorter cooldown per rank, multiplying other recovery bonuses. Active throughout the run; no benefit to caster spells or other forms (Survivors Rage/Energy conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.02 },
     TalentDefinition { id: 842, max_rank: 2, name: "Improved Tranquility", description: "Tranquility: 10% shorter cooldown per rank, multiplying other recovery bonuses. Does not grant the spell or change its five healing pulses (Survivors healing-threat conversion)", stat: TalentStat::SpellCooldown("tranquility"), per_rank: 0.10 },
     TalentDefinition { id: 781, max_rank: 3, name: "Natural Shapeshifter", description: "While a permanent Cat, Bear, Moonkin or Tree of Life form is selected: Druid abilities and automatic Claw/Maul have 2% shorter cooldown per rank, multiplying other recovery bonuses. No benefit without a form (Survivors shapeshifting mana-cost conversion)", stat: TalentStat::FormCooldown, per_rank: 0.02 },
     TalentDefinition { id: 829, max_rank: 3, name: "Reflection", description: "Druid caster and healing spells: 2% shorter cooldown per rank, multiplying other recovery bonuses. Excludes Rake, Swipe, Claw and Maul (Survivors mana-regeneration conversion)", stat: TalentStat::SpellGroupCooldown(CASTER_SPELLS), per_rank: 0.02 },
     TalentDefinition { id: 796, max_rank: 5, name: "Ferocity", description: "Claw, Maul, Rake and Swipe: 4% shorter cooldown per rank, multiplying haste. Does not change other spells or bleed duration (Survivors Energy/Rage-cost conversion)", stat: TalentStat::SpellGroupCooldown(FERAL_ATTACKS), per_rank: 0.04 },
     TalentDefinition { id: 805, max_rank: 2, name: "Savage Fury", description: "Claw, Maul, Rake and Swipe: +10% direct and periodic damage per rank. Multiplies other damage bonuses; does not change other spells or healing", stat: TalentStat::SpellGroupDamage(FERAL_ATTACKS), per_rank: 0.10 },
     TalentDefinition { id: 803, max_rank: 3, name: "Predatory Strikes", description: "Cat and Bear: gain attack power equal to 50% of your current run level per rank. Each 14 attack power adds 1 base damage per second to automatic Claw/Maul before damage bonuses; no effect on spells or healing (Survivors attack-power conversion)", stat: TalentStat::PredatoryStrikes, per_rank: 0.5 },
-    TalentDefinition { id: 791, max_rank: 5, name: "Natural Weapons", description: "Claw, Maul, Rake and Swipe: +2% direct and periodic physical damage per rank. Multiplies Savage Fury; does not change other spells, healing or pets", stat: TalentStat::SpellGroupDamage(FERAL_ATTACKS), per_rank: 0.02 },
+    TalentDefinition { id: 791, max_rank: 5, name: "Natural Weapons", description: "Claw, Maul, Rake, Swipe and Shred: +2% direct and periodic physical damage per rank. Multiplies Savage Fury; does not change other spells, healing or pets", stat: TalentStat::SpellGroupDamage(ALL_FERAL_ATTACKS), per_rank: 0.02 },
     TalentDefinition { id: 1_000_001, max_rank: 1, name: "Cat Form", description: "+20% hero movement speed. Permanently become a Cat for the entire run, gaining automatic Claw outside the six ability slots and starting with Rake alongside Wrath; keeps your spell pool. Excludes Bear, Moonkin and Tree of Life; refund this form before choosing another (Survivors form tuning)", stat: TalentStat::Speed, per_rank: 0.20 },
     TalentDefinition { id: 1_000_002, max_rank: 1, name: "Bear Form", description: "+25% maximum health. Permanently become a Bear for the entire run, gaining automatic Maul outside the six ability slots and starting with Swipe alongside Wrath; keeps your spell pool. Excludes Cat, Moonkin and Tree of Life; refund this form before choosing another (Survivors form tuning)", stat: TalentStat::MaximumHealth, per_rank: 0.25 },
     TalentDefinition { id: 793, max_rank: 1, name: "Moonkin Form", description: "Wrath, Moonfire and Starfire: +5 percentage points critical chance. Permanently become a Moonkin for the entire run. Excludes Cat, Bear and Tree of Life; refund this form before choosing another (Survivors form tuning; adds to the Balance milestone)", stat: TalentStat::SpellGroupCrit(BALANCE), per_rank: 0.05 },
@@ -35,7 +37,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 789, max_rank: 1, name: "Nature's Grace", description: "Damaging Druid spell criticals grant one refreshing 15 sec charge: the next successful Wrath or Starfire has 0.5 sec shorter recovery, after other cooldown modifiers. Failed casts and instant spells do not consume it (Survivors cast-time conversion)", stat: TalentStat::NaturesGrace, per_rank: 0.5 },
     TalentDefinition { id: 827, max_rank: 1, name: "Insect Swarm", description: "Insect Swarm applies +2% reduced outgoing damage to affected enemies for 10 sec, including bosses. Stronger reductions take priority. Damage, cooldown and targeting are unchanged; does not grant the spell (Survivors hit-chance conversion)", stat: TalentStat::InsectSwarmWeakening, per_rank: 0.02 },
     TalentDefinition { id: 808, max_rank: 5, name: "Heart of the Wild", description: "+4% maximum health per rank, including equipped health and multiplying passive, renown and racial health bonuses. Does not heal current health (Survivors stamina conversion; no form required)", stat: TalentStat::MaximumHealth, per_rank: 0.04 },
-    TalentDefinition { id: 809, max_rank: 1, name: "Leader of the Pack", description: "Cat and Bear Claw, Maul, Rake and Swipe: +3 percentage points critical chance, adding to Sharpened Claws and equipment. Bleeds cannot critically strike; no effect on other spells, healing, pets or other forms (Survivors self-only aura conversion)", stat: TalentStat::FeralAttackCrit, per_rank: 0.03 },
+    TalentDefinition { id: 809, max_rank: 1, name: "Leader of the Pack", description: "Cat and Bear Claw, Maul, Rake, Swipe and Shred: +3 percentage points critical chance, adding to Sharpened Claws and equipment. Bleeds cannot critically strike; no effect on other spells, healing, pets or other forms (Survivors self-only aura conversion)", stat: TalentStat::FeralAttackCrit, per_rank: 0.03 },
     TalentDefinition { id: 761, max_rank: 1, name: "Nature's Grasp", description: "Entangling Roots: 15% shorter cooldown, multiplying Improved Entangling Roots and the 10-point Balance milestone (Survivors automatic defensive-root conversion)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.15 },
     TalentDefinition { id: 921, max_rank: 4, name: "Improved Nature's Grasp", description: "Entangling Roots: +10% root duration per rank; bosses retain 30% duration (Survivors automatic-root reliability conversion)", stat: TalentStat::SpellDuration("entangling_roots"), per_rank: 0.10 },
     TalentDefinition { id: 787, max_rank: 3, name: "Improved Entangling Roots", description: "Entangling Roots: 3% shorter cooldown per rank, multiplying Nature's Grasp and the 10-point Balance milestone (Survivors cast reliability conversion; no spell pushback)", stat: TalentStat::SpellCooldown("entangling_roots"), per_rank: 0.03 },
@@ -51,7 +53,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 790, max_rank: 5, name: "Moonfury", description: "Wrath, Moonfire and Starfire: +2% direct and periodic damage per rank", stat: TalentStat::SpellGroupDamage(BALANCE), per_rank: 0.02 },
     TalentDefinition { id: 794, max_rank: 5, name: "Thick Hide", description: "+8 hero armor per rank (Survivors conversion)", stat: TalentStat::Armor, per_rank: 8.0 },
     TalentDefinition { id: 807, max_rank: 2, name: "Feline Swiftness", description: "Cat Form only: +15% outdoor movement speed and +2 percentage points melee dodge chance per rank. Dodge works indoors too; movement multiplies other speed bonuses", stat: TalentStat::FelineSwiftness, per_rank: 0.15 },
-    TalentDefinition { id: 798, max_rank: 3, name: "Sharpened Claws", description: "Cat and Bear Claw, Maul, Rake and Swipe: +2 percentage points critical chance per rank. Bleeds cannot critically strike; no effect on other spells, healing, pets or other forms", stat: TalentStat::FeralAttackCrit, per_rank: 0.02 },
+    TalentDefinition { id: 798, max_rank: 3, name: "Sharpened Claws", description: "Cat and Bear Claw, Maul, Rake, Swipe and Shred: +2 percentage points critical chance per rank. Bleeds cannot critically strike; no effect on other spells, healing, pets or other forms", stat: TalentStat::FeralAttackCrit, per_rank: 0.02 },
     TalentDefinition { id: 830, max_rank: 3, name: "Improved Rejuvenation", description: "Rejuvenation: +5% healing per rank", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.05 },
     TalentDefinition { id: 828, max_rank: 5, name: "Gift of Nature", description: "Rejuvenation, Regrowth, Healing Touch and Tranquility: +2% healing per rank, including direct and periodic healing. Does not change critical chance, duration or damage", stat: TalentStat::SpellGroupHealing(HEALING_SPELLS), per_rank: 0.02 },
     TalentDefinition { id: 821, max_rank: 5, name: "Improved Mark of the Wild", description: "+4 hero armor per rank (Survivors permanent Mark of the Wild conversion)", stat: TalentStat::Armor, per_rank: 4.0 },
@@ -572,7 +574,7 @@ mod feral_crit_tests {
                 .unwrap();
             assert!(text.contains(delta), "{text}");
             assert!(spans.iter().any(|span| text[span.clone()].contains('»')));
-            assert!(text.contains("Cat and Bear Claw, Maul, Rake and Swipe"));
+            assert!(text.contains("Cat and Bear Claw, Maul, Rake, Swipe and Shred"));
         }
     }
 }
@@ -869,7 +871,7 @@ mod natural_weapons_scope_tests {
                         .chain(["Claw", "Maul", "Weapon Attack"])
                 {
                     let mut expected = base.cast(key);
-                    if class == 8 && ["Claw", "Maul", "rake", "swipe"].contains(&key) {
+                    if class == 8 && ["Claw", "Maul", "rake", "swipe", "shred"].contains(&key) {
                         expected.damage *= 1.0 + 0.02 * f32::from(rank.min(5));
                     }
                     assert_eq!(trained.cast(key), expected, "{class}/{rank}/{key}");
@@ -1053,7 +1055,7 @@ mod feral_recovery_tests {
                         let mut expected = base.cast(key);
                         if class == 8
                             && matches!(form, Some(DruidForm::Cat | DruidForm::Bear))
-                            && matches!(key, "Claw" | "Maul" | "rake" | "swipe")
+                            && matches!(key, "Claw" | "Maul" | "rake" | "swipe" | "shred")
                         {
                             let r = f32::from(rank.min(5));
                             expected.cooldown *= (1. - 0.03 * r) * (1. - 0.02 * r);
@@ -1104,7 +1106,7 @@ impl OmenClock {
             || self.pending
             || !damage.is_finite()
             || damage <= 0.
-            || !FERAL_ATTACKS.contains(&key)
+            || !ALL_FERAL_ATTACKS.contains(&key)
         {
             return 0.;
         }
@@ -1156,7 +1158,7 @@ mod omen_tests {
             for key in ["Claw", "Maul", "rake", "swipe", "wrath", "unknown"] {
                 assert_eq!(
                     OmenClock::default().chance(talents, key, 1., 0.),
-                    if class == 8 && FERAL_ATTACKS.contains(&key) {
+                    if class == 8 && ALL_FERAL_ATTACKS.contains(&key) {
                         0.1
                     } else {
                         0.
@@ -1187,5 +1189,47 @@ mod omen_tests {
             assert!(!clock.trigger(talents, "Claw", damage, now, haste, roll));
         }
         assert_eq!(clock.chance(talents.with_ranks(&[]), "Claw", 1., 3.), 0.);
+    }
+}
+
+#[cfg(test)]
+mod shred_tests {
+    use crate::{
+        data,
+        talents::{forms::DruidForm, talent_definition, Milestones},
+    };
+    #[test]
+    fn shred_is_acquired_only_in_cat_and_its_recovery_talent_is_scoped() {
+        assert!(data::CLASSES[8].pool.contains(&"shred"));
+        for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
+            let ranks: Vec<_> = form
+                .into_iter()
+                .map(|f| (f.tree(), f.talent(), 1))
+                .collect();
+            let base = Milestones {
+                class: 8,
+                ..Default::default()
+            }
+            .with_ranks(&ranks);
+            assert_eq!(base.ability_unlocked("shred"), form == Some(DruidForm::Cat));
+            assert!(!base.starting_abilities("wrath").contains(&"shred"));
+            for rank in [0, 1, 2, 255] {
+                let mut ranks = ranks.clone();
+                ranks.push((1, 802, rank));
+                let trained = base.with_ranks(&ranks);
+                for ability in data::ABILITIES {
+                    let mut expected = base.cast(ability.key);
+                    if ability.key == "shred" {
+                        expected.cooldown *= 1. - 0.1 * f32::from(rank.min(2));
+                    }
+                    assert_eq!(trained.cast(ability.key), expected);
+                }
+            }
+        }
+        assert!(talent_definition(8, 802)
+            .unwrap()
+            .inline_description(1)
+            .unwrap()
+            .contains("10 » 20%"));
     }
 }

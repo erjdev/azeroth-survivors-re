@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Cat builds can now acquire Shred, with scoped physical talents and green inline
+upgrades. [Rules and validation](docs/audits/DRUID-SHRED.md).
+
+![Shred upgrade](docs/images/screenshots/2026-11-04-shred/card-wide.jpg)
+
 Omen of Clarity now turns effective feral hits into extra Wrath casts without
 using an ability slot. [Rules and validation](docs/audits/DRUID-OMEN.md).
 
