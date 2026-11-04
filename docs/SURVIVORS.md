@@ -14,6 +14,14 @@ current enemy counts. The Armory is the account, opened before a run and closed 
 The implementation phases, architecture, validation requirements and acceptance criteria are
 in [the implementation contract](SURVIVORS-IMPLEMENTATION.md).
 
+## Permanent feral recovery talents
+
+Feral Instinct grants 3% shorter Claw/Maul/Rake/Swipe cooldown per rank; Furor
+grants 2% per rank. Each has five ranks and requires permanent Cat or Bear.
+Bonuses multiply existing recovery and haste, remain active throughout a run,
+and do not change caster spells, damage or slots. These replace threat/stealth
+and form-entry resources. [Detailed evidence](audits/DRUID-FERAL-RECOVERY.md).
+
 ## Tranquility
 
 A normal acquired Druid ability slot supplies five healing pulses over ten seconds;

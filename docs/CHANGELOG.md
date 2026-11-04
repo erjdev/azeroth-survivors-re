@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-03 — Permanent feral recovery
+
+Feral Instinct and Furor now speed Cat/Bear attacks, replacing threat/stealth and
+entry-only resources. Green inline upgrades, purchase/refund, independent specs
+and compact restart are verified. [Rules and limits](audits/DRUID-FERAL-RECOVERY.md).
+
+![Feral recovery upgrade](images/screenshots/2026-11-03-feral-recovery/instinct-wide.jpg)
+
 ## 2026-11-03 — Moving Tranquility healing
 
 Tranquility heals in five moving area pulses while other attacks continue.

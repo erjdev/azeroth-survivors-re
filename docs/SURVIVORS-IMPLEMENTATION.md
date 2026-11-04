@@ -12,6 +12,15 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Permanent feral recovery — 2026-11-03
+
+Feral Instinct and Furor now supply form-gated Claw/Maul/Rake/Swipe cooldown
+reduction under the approved resource-free policy. They stack with existing
+recovery without changing caster spells or adding slots. [Rules and evidence](audits/DRUID-FERAL-RECOVERY.md)
+cover all-form/core isolation, real timers, purchase/refund, specs and compact
+restart. Druid definitions reach 38/47; overall 332/432. Remaining feral attacks,
+proc conversions and platform/combat acceptance are still required.
+
 ## Moving Tranquility integration — 2026-11-03
 
 Tranquility now occupies a normal acquired slot and runs five independent healing

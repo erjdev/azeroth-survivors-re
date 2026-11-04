@@ -272,7 +272,7 @@ fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_at
 }
 
 #[test]
-fn natural_shapeshifter_reaches_independent_spell_and_automatic_timers() {
+fn permanent_form_recovery_reaches_independent_spell_and_automatic_timers() {
     for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
         for key in ["wrath", "rejuvenation", "rake", "swipe"] {
             let (mut app, _) = setup(form, key);
@@ -290,7 +290,7 @@ fn natural_shapeshifter_reaches_independent_spell_and_automatic_timers() {
                 run.renown_celerity = 10;
                 run.bonus.cooldown = 0.2;
                 baseline = Params::new(&run.abilities[0], &run.stats(), run.milestones).cooldown;
-                let mut ranks = vec![(0, 781, 3)];
+                let mut ranks = vec![(0, 781, 3), (1, 799, 5), (2, 822, 5)];
                 if let Some(f) = form {
                     ranks.push((f.tree(), f.talent(), 1));
                 }
@@ -299,7 +299,12 @@ fn natural_shapeshifter_reaches_independent_spell_and_automatic_timers() {
             }
             app.world_mut().run_system_once(cast_abilities).unwrap();
             let run = app.world().resource::<Run>();
-            let factor = if form.is_some() { 0.94 } else { 1.0 };
+            let mut factor = if form.is_some() { 0.94 } else { 1.0 };
+            if matches!(form, Some(DruidForm::Cat | DruidForm::Bear))
+                && matches!(key, "rake" | "swipe")
+            {
+                factor *= 0.85 * 0.9;
+            }
             assert!(
                 (run.abilities[0].cd - baseline * factor).abs() < 0.001,
                 "{form:?}/{key}"
@@ -307,8 +312,9 @@ fn natural_shapeshifter_reaches_independent_spell_and_automatic_timers() {
             if let Some(f @ (DruidForm::Cat | DruidForm::Bear)) = form {
                 let recovery = if f == DruidForm::Cat { 1.0 } else { 2.5 };
                 assert!(
-                    (run.weapon_attack_cd - recovery * 0.94 / (1.0 + run.stats().haste).max(0.1))
-                        .abs()
+                    (run.weapon_attack_cd
+                        - recovery * 0.94 * 0.85 * 0.9 / (1.0 + run.stats().haste).max(0.1))
+                    .abs()
                         < 0.001
                 );
             } else {

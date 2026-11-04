@@ -17,6 +17,8 @@ const HEALING_SPELLS: &[&str] = &["rejuvenation", "regrowth", "healing_touch", "
 const FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe"];
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 799, max_rank: 5, name: "Feral Instinct", description: "While Cat or Bear is selected: Claw, Maul, Rake and Swipe have 3% shorter cooldown per rank, multiplying other recovery bonuses. No benefit to caster spells or other forms (Survivors threat and stealth conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.03 },
+    TalentDefinition { id: 822, max_rank: 5, name: "Furor", description: "While Cat or Bear is selected: Claw, Maul, Rake and Swipe have 2% shorter cooldown per rank, multiplying other recovery bonuses. Active throughout the run; no benefit to caster spells or other forms (Survivors Rage/Energy conversion)", stat: TalentStat::FeralCooldown, per_rank: 0.02 },
     TalentDefinition { id: 842, max_rank: 2, name: "Improved Tranquility", description: "Tranquility: 10% shorter cooldown per rank, multiplying other recovery bonuses. Does not grant the spell or change its five healing pulses (Survivors healing-threat conversion)", stat: TalentStat::SpellCooldown("tranquility"), per_rank: 0.10 },
     TalentDefinition { id: 781, max_rank: 3, name: "Natural Shapeshifter", description: "While a permanent Cat, Bear, Moonkin or Tree of Life form is selected: Druid abilities and automatic Claw/Maul have 2% shorter cooldown per rank, multiplying other recovery bonuses. No benefit without a form (Survivors shapeshifting mana-cost conversion)", stat: TalentStat::FormCooldown, per_rank: 0.02 },
     TalentDefinition { id: 829, max_rank: 3, name: "Reflection", description: "Druid caster and healing spells: 2% shorter cooldown per rank, multiplying other recovery bonuses. Excludes Rake, Swipe, Claw and Maul (Survivors mana-regeneration conversion)", stat: TalentStat::SpellGroupCooldown(CASTER_SPELLS), per_rank: 0.02 },
@@ -1009,5 +1011,78 @@ mod tranquility_tests {
             .unwrap();
         assert!(text.contains("10 » 20% shorter cooldown"));
         assert!(spans.iter().any(|s| text[s.clone()].contains('»')));
+    }
+}
+
+#[cfg(test)]
+mod feral_recovery_tests {
+    use crate::{
+        data,
+        talents::{forms::DruidForm, talent_definition, Milestones},
+    };
+
+    #[test]
+    fn feral_recovery_is_scoped_clamped_refundable_and_multiplicative() {
+        for class in 0..9 {
+            for form in [
+                None,
+                Some(DruidForm::Cat),
+                Some(DruidForm::Bear),
+                Some(DruidForm::Moonkin),
+                Some(DruidForm::TreeOfLife),
+            ] {
+                let form_ranks: Vec<_> = form
+                    .into_iter()
+                    .map(|f| (f.tree(), f.talent(), 1))
+                    .collect();
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                }
+                .with_ranks(&form_ranks);
+                for rank in [0, 1, 3, 5, 255] {
+                    let mut ranks = form_ranks.clone();
+                    ranks.extend([(1, 799, rank), (2, 822, rank)]);
+                    let trained = base.with_ranks(&ranks);
+                    for key in data::ABILITIES
+                        .iter()
+                        .map(|a| a.key)
+                        .chain(["Claw", "Maul", "unknown"])
+                    {
+                        let mut expected = base.cast(key);
+                        if class == 8
+                            && matches!(form, Some(DruidForm::Cat | DruidForm::Bear))
+                            && matches!(key, "Claw" | "Maul" | "rake" | "swipe")
+                        {
+                            let r = f32::from(rank.min(5));
+                            expected.cooldown *= (1. - 0.03 * r) * (1. - 0.02 * r);
+                        }
+                        assert!((trained.cast(key).cooldown - expected.cooldown).abs() < 0.00001);
+                        expected.cooldown = trained.cast(key).cooldown;
+                        assert_eq!(trained.cast(key), expected);
+                    }
+                    assert_eq!(trained.with_ranks(&form_ranks), base);
+                }
+            }
+        }
+        let combined = Milestones {
+            class: 8,
+            ..Default::default()
+        }
+        .with_ranks(&[
+            (1, 1_000_001, 1),
+            (1, 799, 5),
+            (2, 822, 5),
+            (1, 796, 5),
+            (0, 781, 3),
+        ]);
+        assert!((combined.cast("Claw").cooldown - 0.85 * 0.9 * 0.8 * 0.94).abs() < 0.00001);
+        for (id, text) in [(799, "3 » 6%"), (822, "2 » 4%")] {
+            assert!(talent_definition(8, id)
+                .unwrap()
+                .inline_description(1)
+                .unwrap()
+                .contains(text));
+        }
     }
 }

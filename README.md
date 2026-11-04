@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Feral Instinct and Furor now improve permanent Cat/Bear attack recovery.
+[Rules and validation](docs/audits/DRUID-FERAL-RECOVERY.md).
+
+![Permanent feral recovery](docs/images/screenshots/2026-11-03-feral-recovery/instinct-wide.jpg)
+
 Tranquility now heals in moving pulses while other attacks continue, with scoped
 Restoration talents and inline upgrade previews.
 [Rules and validation](docs/audits/DRUID-TRANQUILITY.md).

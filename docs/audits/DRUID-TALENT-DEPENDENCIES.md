@@ -13,9 +13,9 @@ Survivors conversions remain distinct.
 
 ## Current remaining dependencies — 2026-11-03
 
-The fresh installed-data audit reports **36/47 Druid definitions**, leaving these
-11 nodes: Omen of Clarity, Feral Aggression, Feral Instinct, Brutal Impact, Feral
-Charge, Improved Shred, Blood Frenzy, Primal Fury, Faerie Fire (Feral), Furor and
+The fresh installed-data audit reports **38/47 Druid definitions**, leaving these
+9 nodes: Omen of Clarity, Feral Aggression, Brutal Impact, Feral
+Charge, Improved Shred, Blood Frenzy, Primal Fury, Faerie Fire (Feral) and
 Improved Enrage. The table below preserves the original reference evidence;
 it is not the current list of missing implementations.
 
@@ -270,3 +270,7 @@ rank (three ranks), active only with a permanent form selected. It multiplies
 other recovery bonuses. This replaces its missing shapeshifting-mana consumer
 under the approved permanent-form/resource-free policy.
 [Rules and acceptance](DRUID-NATURAL-SHAPESHIFTER.md).
+
+[Feral Instinct and Furor](DRUID-FERAL-RECOVERY.md) now have permanent Cat/Bear
+recovery consumers, superseding their historical missing threat/stealth/resource
+requirements. Remaining feral attacks and proc conversions still need implementation.

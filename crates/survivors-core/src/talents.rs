@@ -672,6 +672,14 @@ impl Milestones {
                     {
                         effect.damage *= 1.0 + value
                     }
+                    TalentStat::FeralCooldown
+                        if matches!(
+                            self.druid_form(),
+                            Some(forms::DruidForm::Cat | forms::DruidForm::Bear)
+                        ) && matches!(key, "Claw" | "Maul" | "rake" | "swipe") =>
+                    {
+                        effect.cooldown *= 1.0 - value;
+                    }
                     TalentStat::FormCooldown
                         if self.druid_form().is_some()
                             && (crate::data::CLASSES[8].pool.contains(&key)
@@ -1812,6 +1820,7 @@ pub enum TalentStat {
     PredatoryStrikes,
     FeralAttackCrit,
     FormCooldown,
+    FeralCooldown,
     FelineSwiftness,
     CreatureDamage { mask: u32, critical: bool },
     PoisonChance,
@@ -2377,6 +2386,7 @@ impl TalentDefinition {
             | TalentStat::PredatoryStrikes
             | TalentStat::FeralAttackCrit
             | TalentStat::FormCooldown
+            | TalentStat::FeralCooldown
             | TalentStat::FelineSwiftness
             | TalentStat::HunterMarkPower
             | TalentStat::SpellCooldown(_)
@@ -2642,6 +2652,7 @@ impl TalentDefinition {
             }
             TalentStat::Cooldown
             | TalentStat::FormCooldown
+            | TalentStat::FeralCooldown
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
             TalentStat::CreatureDamage { .. } => (100.0, "% damage against matching creatures"),
@@ -4359,6 +4370,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::PredatoryStrikes
             | TalentStat::FeralAttackCrit
             | TalentStat::FormCooldown
+            | TalentStat::FeralCooldown
             | TalentStat::FelineSwiftness
             | TalentStat::HunterMarkPower
             | TalentStat::ColdBlood
@@ -5929,6 +5941,7 @@ mod stat_talent_tests {
                     | TalentStat::PredatoryStrikes
                     | TalentStat::FeralAttackCrit
                     | TalentStat::FormCooldown
+                    | TalentStat::FeralCooldown
                     | TalentStat::FelineSwiftness
                     | TalentStat::HunterMarkPower
                     | TalentStat::ColdBlood
