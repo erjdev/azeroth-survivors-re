@@ -11,11 +11,13 @@ const CASTER_SPELLS: &[&str] = &[
     "rejuvenation",
     "regrowth",
     "healing_touch",
+    "tranquility",
 ];
-const HEALING_SPELLS: &[&str] = &["rejuvenation", "regrowth", "healing_touch"];
+const HEALING_SPELLS: &[&str] = &["rejuvenation", "regrowth", "healing_touch", "tranquility"];
 const FERAL_ATTACKS: &[&str] = &["Claw", "Maul", "rake", "swipe"];
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 842, max_rank: 2, name: "Improved Tranquility", description: "Tranquility: 10% shorter cooldown per rank, multiplying other recovery bonuses. Does not grant the spell or change its five healing pulses (Survivors healing-threat conversion)", stat: TalentStat::SpellCooldown("tranquility"), per_rank: 0.10 },
     TalentDefinition { id: 781, max_rank: 3, name: "Natural Shapeshifter", description: "While a permanent Cat, Bear, Moonkin or Tree of Life form is selected: Druid abilities and automatic Claw/Maul have 2% shorter cooldown per rank, multiplying other recovery bonuses. No benefit without a form (Survivors shapeshifting mana-cost conversion)", stat: TalentStat::FormCooldown, per_rank: 0.02 },
     TalentDefinition { id: 829, max_rank: 3, name: "Reflection", description: "Druid caster and healing spells: 2% shorter cooldown per rank, multiplying other recovery bonuses. Excludes Rake, Swipe, Claw and Maul (Survivors mana-regeneration conversion)", stat: TalentStat::SpellGroupCooldown(CASTER_SPELLS), per_rank: 0.02 },
     TalentDefinition { id: 796, max_rank: 5, name: "Ferocity", description: "Claw, Maul, Rake and Swipe: 4% shorter cooldown per rank, multiplying haste. Does not change other spells or bleed duration (Survivors Energy/Rage-cost conversion)", stat: TalentStat::SpellGroupCooldown(FERAL_ATTACKS), per_rank: 0.04 },
@@ -25,7 +27,7 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 1_000_001, max_rank: 1, name: "Cat Form", description: "+20% hero movement speed. Permanently become a Cat for the entire run, gaining automatic Claw outside the six ability slots and starting with Rake alongside Wrath; keeps your spell pool. Excludes Bear, Moonkin and Tree of Life; refund this form before choosing another (Survivors form tuning)", stat: TalentStat::Speed, per_rank: 0.20 },
     TalentDefinition { id: 1_000_002, max_rank: 1, name: "Bear Form", description: "+25% maximum health. Permanently become a Bear for the entire run, gaining automatic Maul outside the six ability slots and starting with Swipe alongside Wrath; keeps your spell pool. Excludes Cat, Moonkin and Tree of Life; refund this form before choosing another (Survivors form tuning)", stat: TalentStat::MaximumHealth, per_rank: 0.25 },
     TalentDefinition { id: 793, max_rank: 1, name: "Moonkin Form", description: "Wrath, Moonfire and Starfire: +5 percentage points critical chance. Permanently become a Moonkin for the entire run. Excludes Cat, Bear and Tree of Life; refund this form before choosing another (Survivors form tuning; adds to the Balance milestone)", stat: TalentStat::SpellGroupCrit(BALANCE), per_rank: 0.05 },
-    TalentDefinition { id: 1_000_003, max_rank: 1, name: "Tree of Life", description: "Rejuvenation, Regrowth and Healing Touch: +20% healing. Permanently become a Tree of Life for the entire run. Excludes Cat, Bear and Moonkin; refund this form before choosing another (Survivors form tuning)", stat: TalentStat::SpellGroupHealing(&["rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.20 },
+    TalentDefinition { id: 1_000_003, max_rank: 1, name: "Tree of Life", description: "Rejuvenation, Regrowth, Healing Touch and Tranquility: +20% healing. Permanently become a Tree of Life for the entire run. Excludes Cat, Bear and Moonkin; refund this form before choosing another (Survivors form tuning)", stat: TalentStat::SpellGroupHealing(HEALING_SPELLS), per_rank: 0.20 },
     TalentDefinition { id: 825, max_rank: 5, name: "Improved Regrowth", description: "Regrowth: +10 percentage points direct-healing critical chance per rank. Critical heals restore 150%; periodic healing cannot crit. Does not grant the spell", stat: TalentStat::SpellCrit("regrowth"), per_rank: 0.10 },
     TalentDefinition { id: 789, max_rank: 1, name: "Nature's Grace", description: "Damaging Druid spell criticals grant one refreshing 15 sec charge: the next successful Wrath or Starfire has 0.5 sec shorter recovery, after other cooldown modifiers. Failed casts and instant spells do not consume it (Survivors cast-time conversion)", stat: TalentStat::NaturesGrace, per_rank: 0.5 },
     TalentDefinition { id: 827, max_rank: 1, name: "Insect Swarm", description: "Insect Swarm applies +2% reduced outgoing damage to affected enemies for 10 sec, including bosses. Stronger reductions take priority. Damage, cooldown and targeting are unchanged; does not grant the spell (Survivors hit-chance conversion)", stat: TalentStat::InsectSwarmWeakening, per_rank: 0.02 },
@@ -42,18 +44,18 @@ pub(super) const DEFINITIONS: &[TalentDefinition] = &[
     TalentDefinition { id: 782, max_rank: 3, name: "Improved Thorns", description: "Thorns: +10% retaliation damage per rank", stat: TalentStat::SpellDamage("thorns"), per_rank: 0.1 },
     TalentDefinition { id: 792, max_rank: 5, name: "Vengeance", description: "Wrath, Moonfire and Starfire: +10 percentage points critical damage per rank", stat: TalentStat::SpellGroupCritDamage(BALANCE), per_rank: 0.1 },
     TalentDefinition { id: 784, max_rank: 5, name: "Improved Starfire", description: "Starfire: 3% shorter cooldown per rank (Survivors cast-time conversion)", stat: TalentStat::SpellCooldown("starfire"), per_rank: 0.03 },
-    TalentDefinition { id: 783, max_rank: 3, name: "Moonglow", description: "Wrath, Moonfire, Starfire, Rejuvenation, Regrowth and Healing Touch: 3% shorter cooldown per rank (Survivors mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(&["wrath", "moonfire", "starfire", "rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.03 },
+    TalentDefinition { id: 783, max_rank: 3, name: "Moonglow", description: "Wrath, Moonfire, Starfire, Rejuvenation, Regrowth, Healing Touch and Tranquility: 3% shorter cooldown per rank (Survivors mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(&["wrath", "moonfire", "starfire", "rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.03 },
     TalentDefinition { id: 790, max_rank: 5, name: "Moonfury", description: "Wrath, Moonfire and Starfire: +2% direct and periodic damage per rank", stat: TalentStat::SpellGroupDamage(BALANCE), per_rank: 0.02 },
     TalentDefinition { id: 794, max_rank: 5, name: "Thick Hide", description: "+8 hero armor per rank (Survivors conversion)", stat: TalentStat::Armor, per_rank: 8.0 },
     TalentDefinition { id: 807, max_rank: 2, name: "Feline Swiftness", description: "Cat Form only: +15% outdoor movement speed and +2 percentage points melee dodge chance per rank. Dodge works indoors too; movement multiplies other speed bonuses", stat: TalentStat::FelineSwiftness, per_rank: 0.15 },
     TalentDefinition { id: 798, max_rank: 3, name: "Sharpened Claws", description: "Cat and Bear Claw, Maul, Rake and Swipe: +2 percentage points critical chance per rank. Bleeds cannot critically strike; no effect on other spells, healing, pets or other forms", stat: TalentStat::FeralAttackCrit, per_rank: 0.02 },
     TalentDefinition { id: 830, max_rank: 3, name: "Improved Rejuvenation", description: "Rejuvenation: +5% healing per rank", stat: TalentStat::SpellHealing("rejuvenation"), per_rank: 0.05 },
-    TalentDefinition { id: 828, max_rank: 5, name: "Gift of Nature", description: "Rejuvenation, Regrowth and Healing Touch: +2% healing per rank, including direct and periodic healing. Does not change critical chance, duration or damage", stat: TalentStat::SpellGroupHealing(&["rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.02 },
+    TalentDefinition { id: 828, max_rank: 5, name: "Gift of Nature", description: "Rejuvenation, Regrowth, Healing Touch and Tranquility: +2% healing per rank, including direct and periodic healing. Does not change critical chance, duration or damage", stat: TalentStat::SpellGroupHealing(HEALING_SPELLS), per_rank: 0.02 },
     TalentDefinition { id: 821, max_rank: 5, name: "Improved Mark of the Wild", description: "+4 hero armor per rank (Survivors permanent Mark of the Wild conversion)", stat: TalentStat::Armor, per_rank: 4.0 },
     TalentDefinition { id: 824, max_rank: 5, name: "Improved Healing Touch", description: "Rejuvenation and Healing Touch: 3% shorter cooldown per rank (Survivors Healing Touch cast-time conversion)", stat: TalentStat::SpellGroupCooldown(&["rejuvenation", "healing_touch"]), per_rank: 0.03 },
-    TalentDefinition { id: 823, max_rank: 5, name: "Nature's Focus", description: "Rejuvenation, Regrowth and Healing Touch: +2% direct and periodic healing per rank, multiplying Gift of Nature. Does not change critical chance or recovery (Survivors healing reliability conversion; no spell pushback)", stat: TalentStat::SpellGroupHealing(&["rejuvenation", "regrowth", "healing_touch"]), per_rank: 0.02 },
-    TalentDefinition { id: 841, max_rank: 5, name: "Subtlety", description: "Rejuvenation, Regrowth and Healing Touch: 2% shorter cooldown per rank, multiplying other recovery bonuses. Does not reduce incoming damage (Survivors healing-threat conversion)", stat: TalentStat::SpellGroupCooldown(HEALING_SPELLS), per_rank: 0.02 },
-    TalentDefinition { id: 843, max_rank: 5, name: "Tranquil Spirit", description: "Rejuvenation and Healing Touch: 2% shorter cooldown per rank (Survivors healing mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(&["rejuvenation", "healing_touch"]), per_rank: 0.02 },
+    TalentDefinition { id: 823, max_rank: 5, name: "Nature's Focus", description: "Rejuvenation, Regrowth, Healing Touch and Tranquility: +2% direct and periodic healing per rank, multiplying Gift of Nature. Does not change critical chance or recovery (Survivors healing reliability conversion; no spell pushback)", stat: TalentStat::SpellGroupHealing(HEALING_SPELLS), per_rank: 0.02 },
+    TalentDefinition { id: 841, max_rank: 5, name: "Subtlety", description: "Rejuvenation, Regrowth, Healing Touch and Tranquility: 2% shorter cooldown per rank, multiplying other recovery bonuses. Does not reduce incoming damage (Survivors healing-threat conversion)", stat: TalentStat::SpellGroupCooldown(HEALING_SPELLS), per_rank: 0.02 },
+    TalentDefinition { id: 843, max_rank: 5, name: "Tranquil Spirit", description: "Rejuvenation, Healing Touch and Tranquility: 2% shorter cooldown per rank (Survivors healing mana-cost conversion)", stat: TalentStat::SpellGroupCooldown(&["rejuvenation", "healing_touch", "tranquility"]), per_rank: 0.02 },
  ];
 pub(super) fn apply_milestones(points: [u32; 3], key: &str, effect: &mut super::CastEffect) {
     if points[0] >= 10 && key == "entangling_roots" {
@@ -952,5 +954,60 @@ mod restoration_recovery_tests {
             assert!(text.contains("2 » 4% shorter cooldown"));
             assert!(spans.iter().any(|span| text[span.clone()].contains('»')));
         }
+    }
+}
+
+#[cfg(test)]
+mod tranquility_tests {
+    use crate::{
+        data,
+        talents::{forms::DruidForm, talent_definition, Milestones},
+    };
+    #[test]
+    fn tranquility_has_scoped_healing_recovery_and_no_critical_or_target_growth() {
+        assert!(data::CLASSES[8].pool.contains(&"tranquility"));
+        for class in 0..9 {
+            for rank in [0, 1, 2, 5, 255] {
+                let base = Milestones {
+                    class,
+                    ..Default::default()
+                };
+                let trained = base.with_ranks(&[(2, 842, rank)]);
+                for ability in data::ABILITIES {
+                    let mut expected = base.cast(ability.key);
+                    if class == 8 && ability.key == "tranquility" {
+                        expected.cooldown *= 1. - 0.1 * f32::from(rank.min(2));
+                    }
+                    assert_eq!(trained.cast(ability.key), expected);
+                }
+                assert_eq!(trained.with_ranks(&[]), base);
+            }
+        }
+        let form = DruidForm::TreeOfLife;
+        let effect = Milestones {
+            class: 8,
+            ..Default::default()
+        }
+        .with_ranks(&[
+            (form.tree(), form.talent(), 1),
+            (2, 828, 5),
+            (2, 823, 5),
+            (2, 841, 5),
+            (2, 829, 3),
+            (2, 843, 5),
+            (2, 842, 2),
+            (0, 781, 3),
+        ])
+        .cast("tranquility");
+        assert!((effect.damage - 1.2 * 1.1 * 1.1).abs() < 0.00001);
+        assert!((effect.cooldown - 0.9 * 0.94 * 0.9 * 0.8 * 0.94).abs() < 0.00001);
+        assert_eq!(effect.crit, 0.);
+        assert_eq!(effect.extra_targets, 0);
+        let (text, spans) = talent_definition(8, 842)
+            .unwrap()
+            .inline_description_with_values(1)
+            .unwrap();
+        assert!(text.contains("10 » 20% shorter cooldown"));
+        assert!(spans.iter().any(|s| text[s.clone()].contains('»')));
     }
 }

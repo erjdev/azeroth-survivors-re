@@ -5,6 +5,15 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-03 — Moving Tranquility healing
+
+Tranquility heals in five moving area pulses while other attacks continue.
+Improved Tranquility and scoped Restoration talents now affect it; green inline
+cards show healing, radius and recovery changes. Purchase/refund, separate specs
+and compact restart are verified. [Evidence and limits](audits/DRUID-TRANQUILITY.md).
+
+![Tranquility inline upgrades](images/screenshots/2026-11-03-tranquility/cards-wide.jpg)
+
 ## 2026-11-03 — Pulsed healing foundation
 
 Added independent healing pulses with safe refresh, long-frame settlement and

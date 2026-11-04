@@ -55,6 +55,7 @@ mod stoneclaw;
 mod talent_validation;
 #[cfg(feature = "survivors-text")]
 pub(crate) mod text_placement;
+mod tranquility;
 mod tuning;
 mod units;
 #[cfg(feature = "survivors-visibility")]
@@ -201,6 +202,7 @@ impl Plugin for SurvivorsPlugin {
                     abilities::tick_areas,
                     hunter_pet::fight,
                     abilities::apply_hits,
+                    tranquility::tick,
                     enemies::tick_marks,
                     enemies::drop_loot,
                     companions::herd,
@@ -556,6 +558,7 @@ pub(super) struct Run {
     pub weapon_attack_cd: f32,
     pub thorns_spell: u32,
     pub healing: survivors_core::healing::HealingOverTime,
+    tranquility: Option<tranquility::Active>,
     /// The class mobility's cooldown and running effect.
     mobile: mobility::MobilityState,
     pub pending_levels: u32,
@@ -665,6 +668,7 @@ impl Default for Run {
             weapon_attack_cd: 0.0,
             thorns_spell: 0,
             healing: Default::default(),
+            tranquility: None,
             mobile: mobility::MobilityState::default(),
             pending_levels: 0,
             bosses: 0,

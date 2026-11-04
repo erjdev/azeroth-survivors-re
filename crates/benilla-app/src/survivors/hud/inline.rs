@@ -319,6 +319,11 @@ fn ability_localized(def: &AbilityDef, a: &Cast, b: &Cast, strings: &Strings) ->
                 ". The immediate heal has ", (a.crit * 100., b.crit * 100., "% chance"),
                 " to critically heal for 150%. Periodic healing cannot crit; refreshes only Regrowth");
         }
+        Kind::HealingChannel => {
+            prose!("Below 85% health, heals you and living combat pets within ", radius,
+                " for ", (a.dmg / 5.0, b.dmg / 5.0, " health"),
+                " every 2 sec for 10 sec. The area follows you; movement and other attacks continue. Healing cannot crit");
+        }
         Kind::Heal => {
             prose!(
                 "Below 85% health, heals you for ",

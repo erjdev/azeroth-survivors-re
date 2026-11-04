@@ -12,6 +12,16 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Moving Tranquility integration — 2026-11-03
+
+Tranquility now occupies a normal acquired slot and runs five independent healing
+pulses, following the caster while movement and other attacks continue. Improved
+Tranquility converts threat into scoped recovery. Existing healing/caster talent
+scopes include it where appropriate. [Rules, evidence and remaining acceptance](audits/DRUID-TRANQUILITY.md)
+cover moving recipients, concurrent attacks, caps, saved specs and compact UI.
+Attended effects, obstructed line-of-sight, Windows and balance remain open.
+This supersedes the foundation checkpoint's pending gameplay integration.
+
 ## Tranquility healing foundation — 2026-11-03
 
 Installed pulse/area evidence and the shared pulsed-healing clock are documented

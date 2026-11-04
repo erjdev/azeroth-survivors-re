@@ -2788,7 +2788,7 @@ pub(super) fn base_ability_body(def: &'static AbilityDef) -> String {
 fn next_rank(def: &AbilityDef, now: &Cast, next: &Cast, strings: &Strings) -> String {
     let what = match def.kind {
         Kind::Shield => "absorbed",
-        Kind::Heal | Kind::Regrowth | Kind::DirectHeal => "healing",
+        Kind::Heal | Kind::HealingChannel | Kind::Regrowth | Kind::DirectHeal => "healing",
         _ => "damage",
     };
     let mut gains = Vec::new();
@@ -3045,6 +3045,7 @@ fn ability_tip(
             | Kind::Shield
             | Kind::Immune
             | Kind::Heal
+            | Kind::HealingChannel
             | Kind::Regrowth
             | Kind::DirectHeal
             | Kind::Dot

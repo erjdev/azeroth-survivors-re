@@ -14,6 +14,16 @@ current enemy counts. The Armory is the account, opened before a run and closed 
 The implementation phases, architecture, validation requirements and acceptance criteria are
 in [the implementation contract](SURVIVORS-IMPLEMENTATION.md).
 
+## Tranquility
+
+A normal acquired Druid ability slot supplies five healing pulses over ten seconds;
+the area follows the player while movement and other attacks continue. Rank-one
+values are 60 total healing, 20 yards and 30 seconds recovery. It triggers below
+85% health, heals living friendly combat pets in range and line of sight, and
+cannot crit or resurrect. Recovery cannot shorten its ten-second active schedule.
+Improved Tranquility reduces recovery by 10% per rank (two ranks), without granting
+the spell. [Detailed scaling and acceptance](audits/DRUID-TRANQUILITY.md).
+
 ## Ability range and area
 
 Area bonuses increase both ability targeting range and area radius. Targeting

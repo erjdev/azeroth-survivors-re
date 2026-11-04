@@ -17,6 +17,12 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Tranquility now heals in moving pulses while other attacks continue, with scoped
+Restoration talents and inline upgrade previews.
+[Rules and validation](docs/audits/DRUID-TRANQUILITY.md).
+
+![Tranquility inline upgrades](docs/images/screenshots/2026-11-03-tranquility/cards-wide.jpg)
+
 Natural Shapeshifter now improves recovery while a permanent form is selected.
 [Rules and validation](docs/audits/DRUID-NATURAL-SHAPESHIFTER.md).
 

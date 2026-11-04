@@ -254,13 +254,17 @@ fn restoration_recovery_conversions_reach_cast_timers_without_affecting_feral_at
             }
             app.world_mut().run_system_once(cast_abilities).unwrap();
             let factor = match key {
-                "rejuvenation" | "regrowth" | "healing_touch" => 0.9 * 0.94,
+                "rejuvenation" | "regrowth" | "healing_touch" | "tranquility" => 0.9 * 0.94,
                 "rake" | "swipe" => 1.0,
                 _ => 0.94,
             };
+            let expected = if key == "tranquility" {
+                (base_cooldown * factor).max(10.0)
+            } else {
+                base_cooldown * factor
+            };
             assert!(
-                (app.world().resource::<Run>().abilities[0].cd - base_cooldown * factor).abs()
-                    < 0.001,
+                (app.world().resource::<Run>().abilities[0].cd - expected).abs() < 0.001,
                 "{key}/{level}"
             );
         }

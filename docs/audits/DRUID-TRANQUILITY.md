@@ -38,16 +38,53 @@ post-expiry payment. The existing runtime uses this shared clock in regeneration
 this checkpoint does not schedule Tranquility from gameplay yet. No interface or
 asset changes are made, so no new visual capture is claimed.
 
-## Remaining integration
+## Gameplay integration implemented
 
-- Author explicit Survivors healing/recovery scaling and recipient policy,
-  retaining the area-healing identity and owner attribution.
-- Add acquisition and six-slot accounting, green inline pulse/area previews,
-  moving visuals, independent cast recovery and active-time scheduling.
-- Integrate Improved Tranquility, Tranquil Spirit, Nature's Focus, Gift of Nature,
-  Tree of Life, Reflection and Subtlety with their documented spell scopes.
-- Verify real healing settlement, health caps, no resurrection, pause/death/run
-  reset, moving casts, concurrent attacks, refunds/specs and saved restart.
-- Capture cards/talents at wide and compact sizes, then perform platform and
-  attended combat acceptance. Coverage remains Druid 35/47, total 329/432 until
-  actual ability/talent consumers exist.
+Authored rank-one values: 60 total healing, five pulses of 12 at 2/4/6/8/10
+seconds, twenty-yard radius and thirty-second base recovery. Ability rank and
+healing bonuses scale the total; area scales the radius. Recovery uses haste,
+rank and scoped cooldown bonuses, with a ten-second floor. An active channel
+cannot be replaced by an early recast. Acquisition uses a normal ability slot;
+Improved Tranquility modifies the spell without granting it.
+
+Below 85% hero health, the automatic cast starts its independent schedule.
+At each payment, the area follows the caster and checks current distance,
+line of sight and life state. The single-player runtime heals its hero and
+combat pets (currently the Hunter wolf health component); cosmetic companions
+have no health and are excluded. Long-frame payments use current positions,
+not reconstructed historical positions. Defeat or a missing caster ends the
+channel; elapsed run time freezes during menu/pause. Periodic healing cannot
+crit, resurrect, or bank overhealing. Extra targets do not multiply this area.
+
+Improved Tranquility converts threat reduction to 10% shorter cooldown per rank,
+two ranks. Tranquil Spirit, Nature's Focus, Gift of Nature, Tree of Life,
+Reflection and Subtlety now include Tranquility. Moonglow and Improved Healing
+Touch remain explicitly scoped to their existing spells. Natural Shapeshifter
+includes the new catalog ability only when a permanent form is selected.
+
+Native preview verifies green inline card upgrades at wide and 640×720/125%
+layouts, talent purchase to 2/2, refund to 1/2, an empty second spec, and saved
+1/2 after compact restart. Screenshots use disposable checkout fixtures.
+
+![Inline pulse, radius and recovery upgrades](../images/screenshots/2026-11-03-tranquility/cards-wide.jpg)
+
+![Saved compact talent rank](../images/screenshots/2026-11-03-tranquility/restart-compact.jpg)
+
+373 core tests pass. Runtime regression exercises actual casting, concurrent
+Wrath, moving recipient eligibility, unchanged-time pause behavior, early recast
+rejection, overhealing, dead-pet exclusion and caster defeat. Native play build
+and WebGPU check pass (six existing WebGPU warnings).
+
+Remaining acceptance: attended in-world particle appearance, an obstructed
+line-of-sight fixture, Windows/controller behavior and balance. This is the
+single-player recipient implementation, not multiplayer party healing. Acquisition
+uses the normal Druid pool; screenshots verify an upgrade card, not a played
+new-spell acquisition. Full landing validation and the overall talent phase remain
+open.
+
+Fresh installed-data definition audit: Druid 36/47, total 330/432, with 81/81
+milestone descriptions. This measures definitions, not complete gameplay acceptance.
+
+Final integration gate: ten-package scoped format/Clippy/tests pass, with 31
+optional addon-corpus tests skipped. Build storage is 61.15 GiB, within budget.
+The full landing gate remains separate.

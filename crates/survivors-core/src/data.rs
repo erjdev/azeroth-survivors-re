@@ -86,6 +86,8 @@ pub enum Kind {
     Thorns,
     /// Heals `damage` over `duration`.
     Heal,
+    /// Moving area healing with five independent two-second pulses.
+    HealingChannel,
     /// Direct healing plus `dot` healing per second for `duration`; only direct healing can crit.
     Regrowth,
     /// Immediate self-healing with a fixed 150% critical multiplier.
@@ -1207,6 +1209,16 @@ pub static ABILITIES: &[AbilityDef] = &[
         }
     ),
     ability!(
+        "tranquility",
+        740,
+        HealingChannel {
+            damage: 60.0,
+            cooldown: 30.0,
+            duration: 10.0,
+            radius: 20.0
+        }
+    ),
+    ability!(
         "healing_touch",
         5185,
         DirectHeal {
@@ -1597,6 +1609,7 @@ pub static CLASSES: &[ClassDef] = &[
             "rejuvenation",
             "regrowth",
             "healing_touch",
+            "tranquility",
         ],
         looks: &[
             1706, 1732, 2106, 2115, 2121, 2250, 2255, 2261, 3300, 3301, 3302, 3819, 3820, 7357,

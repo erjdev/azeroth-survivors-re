@@ -308,6 +308,7 @@ impl Params {
                     Kind::Interrupt
                         | Kind::Silence
                         | Kind::Channel
+                        | Kind::HealingChannel
                         | Kind::Mark
                         | Kind::Coating(_)
                         | Kind::Aspect
@@ -327,7 +328,7 @@ impl Params {
                 }
                 .scaled_duration((1.0 + 0.1 * f32::from(o.level - 1)) * effect.duration),
             ),
-            cooldown: if o.def.kind == Kind::Channel {
+            cooldown: if matches!(o.def.kind, Kind::Channel | Kind::HealingChannel) {
                 (o.cooldown(stats) * effect.cooldown).max(o.def.duration)
             } else if o.def.kind == Kind::Mark {
                 super::sheet::cooldown_time(o.def.cooldown, stats.haste, stats.cooldown)
@@ -345,6 +346,7 @@ impl Params {
                     | Kind::Silence
                     | Kind::Curse
                     | Kind::Channel
+                    | Kind::HealingChannel
                     | Kind::Mark
                     | Kind::Coating(_)
                     | Kind::Aspect
@@ -1208,6 +1210,15 @@ pub(super) fn cast_abilities(
                         fx.number(me, healed, critical, COLOR_HEAL);
                     }
                     true
+                } else {
+                    false
+                }
+            }
+            Kind::HealingChannel => {
+                if run.hp < stats.max_hp * 0.85 && run.tranquility.is_none() {
+                    run.tranquility =
+                        super::tranquility::Active::new(me, run.elapsed, p.dmg, p.radius);
+                    run.tranquility.is_some()
                 } else {
                     false
                 }
@@ -11599,7 +11610,7 @@ mod totem_timing_tests;
 
 #[cfg(test)]
 #[path = "earthbind_tests.rs"]
-mod earthbind_tests;
+pub(super) mod earthbind_tests;
 
 #[cfg(test)]
 #[path = "stoneclaw_tests.rs"]
