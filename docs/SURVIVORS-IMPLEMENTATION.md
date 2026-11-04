@@ -12,6 +12,14 @@ Start with the [current acceptance status](SURVIVORS-STATUS.md) for the phase su
 remaining audit gaps and unanswered design choices. Dated checkpoints below are history,
 not a cumulative declaration that every earlier pending item is still open.
 
+## Tranquility healing foundation — 2026-11-03
+
+Installed pulse/area evidence and the shared pulsed-healing clock are documented
+in [Tranquility integration](audits/DRUID-TRANQUILITY.md). This prerequisite preserves
+independent continuous healing and active-time semantics. Ability acquisition,
+area recipients, visuals, talent consumers and acceptance remain required; no
+playable Tranquility or talent-coverage increase is claimed.
+
 ## Permanent-form recovery — 2026-11-03
 
 Natural Shapeshifter now has a form-gated recovery consumer across Druid abilities

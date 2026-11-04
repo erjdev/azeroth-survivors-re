@@ -221,3 +221,6 @@ Reflection affects caster/healing cooldowns, excluding feral attacks.
 
 Natural Shapeshifter now supplies form-gated cooldown reduction, with
 [core/runtime and native evidence](audits/DRUID-NATURAL-SHAPESHIFTER.md).
+
+Tranquility now has a [tested shared pulse-clock prerequisite](audits/DRUID-TRANQUILITY.md).
+Its gameplay acquisition, area healing, visuals and dependent talents remain open.

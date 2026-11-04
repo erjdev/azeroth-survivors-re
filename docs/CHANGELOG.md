@@ -5,6 +5,12 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-03 — Pulsed healing foundation
+
+Added independent healing pulses with safe refresh, long-frame settlement and
+continuous-heal coexistence. This prepares Tranquility; its gameplay/UI integration
+remains open. [Evidence and next acceptance steps](audits/DRUID-TRANQUILITY.md).
+
 ## 2026-11-03 — Permanent-form recovery training
 
 Natural Shapeshifter now speeds Druid abilities and automatic attacks while a

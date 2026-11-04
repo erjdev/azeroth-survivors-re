@@ -6,6 +6,17 @@ struct Effect {
     rate: f32,
     remaining: f32,
     unpaid: f32,
+    pulses: Option<Pulses>,
+}
+
+/// Fixed-count healing pulses; elapsed time uses f64 to keep frame partitioning stable.
+#[derive(Clone, Debug, PartialEq)]
+struct Pulses {
+    interval: f64,
+    elapsed: f64,
+    paid: u32,
+    count: u32,
+    amount: f32,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -33,12 +44,42 @@ impl HealingOverTime {
             rate,
             remaining: duration,
             unpaid: total,
+            pulses: None,
         };
         if let Some(existing) = self.effects.iter_mut().find(|e| e.source == source) {
             *existing = effect;
         } else {
             self.effects.push(effect);
         }
+        true
+    }
+
+    /// A moving channel may schedule a finite number of equal healing pulses.
+    /// The first pulse occurs after one interval, never immediately. Recasting replaces
+    /// only this source. Invalid schedules preserve every existing effect.
+    pub fn refresh_pulsed(
+        &mut self,
+        source: &'static str,
+        total: f32,
+        interval: f32,
+        count: u32,
+    ) -> bool {
+        let duration = interval * count as f32;
+        if count == 0 || !self.refresh(source, total, duration) {
+            return false;
+        }
+        let effect = self
+            .effects
+            .iter_mut()
+            .find(|e| e.source == source)
+            .unwrap();
+        effect.pulses = Some(Pulses {
+            interval: f64::from(interval),
+            elapsed: 0.0,
+            paid: 0,
+            count,
+            amount: total / count as f32,
+        });
         true
     }
 
@@ -54,7 +95,19 @@ impl HealingOverTime {
         }
         let mut healing = 0.0;
         for effect in &mut self.effects {
-            let paid = if seconds >= effect.remaining {
+            let paid = if let Some(pulses) = &mut effect.pulses {
+                pulses.elapsed += f64::from(seconds);
+                // A small tolerance handles f32 frame deltas at an exact pulse boundary.
+                let due =
+                    ((pulses.elapsed / pulses.interval + 1e-6).floor() as u32).min(pulses.count);
+                let newly_due = due.saturating_sub(pulses.paid);
+                pulses.paid = due;
+                if due == pulses.count {
+                    effect.unpaid
+                } else {
+                    (newly_due as f32 * pulses.amount).min(effect.unpaid)
+                }
+            } else if seconds >= effect.remaining {
                 effect.unpaid
             } else {
                 (effect.rate * seconds).min(effect.unpaid)
@@ -63,7 +116,12 @@ impl HealingOverTime {
             effect.remaining = (effect.remaining - seconds).max(0.0);
             healing += paid;
         }
-        self.effects.retain(|e| e.remaining > 0.0 && e.unpaid > 0.0);
+        self.effects.retain(|e| {
+            e.unpaid > 0.0
+                && e.pulses
+                    .as_ref()
+                    .map_or(e.remaining > 0.0, |p| p.paid < p.count)
+        });
         healing
     }
 }
@@ -112,5 +170,76 @@ mod tests {
         }
         assert!(!healing.refresh("", 30.0, 10.0));
         assert_eq!(healing, before);
+    }
+}
+
+#[cfg(test)]
+mod pulse_tests {
+    use super::*;
+
+    #[test]
+    fn pulses_wait_for_boundaries_and_coexist_with_continuous_healing() {
+        let mut healing = HealingOverTime::default();
+        healing.refresh("rejuvenation", 30., 10.);
+        assert!(healing.refresh_pulsed("tranquility", 50., 2., 5));
+        assert_eq!(healing.advance(1.), 3.);
+        assert_eq!(healing.advance(1.), 13.);
+        assert_eq!(healing.advance(3.), 19.);
+        assert_eq!(healing.advance(0.5), 1.5);
+        assert_eq!(healing.advance(0.5), 11.5);
+        assert_eq!(healing.advance(100.), 32.);
+        assert_eq!(healing, HealingOverTime::default());
+        assert_eq!(healing.advance(100.), 0.);
+    }
+
+    #[test]
+    fn pulse_totals_are_frame_partition_independent_and_do_not_bank_overrun() {
+        for steps in [
+            vec![100.],
+            vec![2.; 5],
+            vec![0.01; 1000],
+            vec![1. / 60.; 600],
+        ] {
+            let mut healing = HealingOverTime::default();
+            healing.refresh_pulsed("tranquility", 37., 2., 5);
+            let paid: f32 = steps.into_iter().map(|dt| healing.advance(dt)).sum();
+            assert!((paid - 37.).abs() < 0.001, "{paid}");
+            assert!(!healing.contains("tranquility"));
+            assert_eq!(healing.advance(10.), 0.);
+        }
+    }
+
+    #[test]
+    fn pulse_refresh_and_invalid_schedules_preserve_other_sources() {
+        let mut healing = HealingOverTime::default();
+        healing.refresh("regrowth", 20., 10.);
+        healing.refresh_pulsed("tranquility", 50., 2., 5);
+        assert_eq!(healing.advance(3.), 16.);
+        let before = healing.clone();
+        for (total, interval, count) in [
+            (50., 2., 0),
+            (50., 0., 5),
+            (50., -2., 5),
+            (f32::NAN, 2., 5),
+            (50., f32::INFINITY, 5),
+            (50., f32::NAN, 5),
+            (0., 2., 5),
+        ] {
+            assert!(!healing.refresh_pulsed("tranquility", total, interval, count));
+            assert_eq!(healing, before);
+        }
+        for dt in [0., -1., f32::NAN, f32::INFINITY] {
+            assert_eq!(healing.advance(dt), 0.);
+            assert_eq!(healing, before);
+        }
+        healing.refresh_pulsed("tranquility", 100., 2., 5);
+        assert_eq!(
+            healing.advance(1.),
+            2.,
+            "recast restarts only its own pulse clock"
+        );
+        assert_eq!(healing.advance(1.), 22.);
+        assert_eq!(healing.advance(100.), 90.);
+        assert_eq!(healing, HealingOverTime::default());
     }
 }
