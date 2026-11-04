@@ -177,9 +177,12 @@ pub fn new_shared_light_buffer(device: &RenderDevice) -> SharedLightBuffer {
 /// as `wow_light` must be this big: wgpu validates the bound size against `wow_model.wgsl`'s
 /// whole layout at each draw.
 pub fn light_blob_bytes() -> u64 {
-    per_frame_blob_bytes()
+    let size = per_frame_blob_bytes()
         + (7 * MAX_PROP_PROBES * 16) as u64
-        + crate::rig_palette::palette_regions_bytes()
+        + crate::rig_palette::palette_regions_bytes();
+    #[cfg(feature = "survivors-visibility")]
+    let size = size + crate::survivors_visibility::TAIL_BYTES;
+    size
 }
 
 /// The per-frame prefix's size, which is also the probe region's offset.

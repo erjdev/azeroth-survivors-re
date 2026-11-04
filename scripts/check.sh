@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # The in-loop verify: fmt everywhere, clippy and test on the changed crates and their dependents.
 #
-# The change set is the fork point against main plus staged, unstaged and untracked files. A path
+# The change set starts at a compatible full-gate snapshot, falling back to the fork point
+# against main, plus staged, unstaged and untracked files. A path
 # under crates/<dir>/ scopes that package, docs/ and *.md scope nothing, and any other path runs
 # scripts/gates.sh, the workspace-wide chain run at land.
 # CHECK_FULL=1 goes straight to gates.sh.
@@ -21,12 +22,36 @@ fi
 
 # ── The round's change set ───────────────────────────────────────────────────────────────────────
 base="$(git merge-base HEAD main 2>/dev/null || git rev-parse HEAD)"
+# A full-gate snapshot may include uncommitted files; compare its Git tree, not a
+# guessed commit. Compiler/script/data drift invalidates this narrower baseline.
+if [ "${GATES_FORCE:-}" != "1" ] && [ -f target/.gates-green ]; then
+    verified="$(cat target/.gates-green 2>/dev/null)"
+    verified_tree="${verified%%|*}"
+    verified_meta="${verified#*|}"
+    gate_hash="$(shasum scripts/gates.sh 2>/dev/null | cut -d' ' -f1)"
+    expected_prefix="$(rustc -V 2>/dev/null)|$gate_hash|"
+    case "$verified_meta" in
+        "$expected_prefix"*)
+            corpus=""
+            [ -d wow-addons-vanilla ] && corpus="+corpus"
+            if data_path="$(cargo run -q -p benilla-formats --example where 2>/dev/null)"; then
+                if [[ "$verified_tree" =~ ^([0-9a-f]{40}|[0-9a-f]{64})$ ]] &&
+                    [ "$verified_meta" = "$expected_prefix$data_path$corpus" ] &&
+                    git cat-file -e "$verified_tree^{tree}" 2>/dev/null; then
+                    base="$verified_tree"
+                    echo "check: changes since the compatible full-gate snapshot"
+                fi
+            fi
+            ;;
+    esac
+fi
 changed="$( { git diff --name-only "$base" HEAD 2>/dev/null
-              git diff --name-only HEAD 2>/dev/null
+              git diff --name-only --cached HEAD 2>/dev/null
+              git diff --name-only 2>/dev/null
               git ls-files --others --exclude-standard 2>/dev/null; } | sort -u )"
 
 if [ -z "$changed" ]; then
-    echo "check: no changes against main and a clean tree — nothing to verify"
+    echo "check: no changes against the verification baseline and a clean tree — nothing to verify"
     exit 0
 fi
 

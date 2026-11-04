@@ -1,0 +1,5 @@
+# Select a Warlock; inspect without spending points.
+page=talents
+talent=982
+width=640
+height=720

@@ -1,0 +1,14 @@
+# Map 0, Elwynn; nearest eight ADT tree origins to the Survivors spawn.
+# Labels carry placement unique IDs from the 1.12.1 source audit.
+# Origin crossings are diagnostic, not guaranteed trunk intersections.
+tree-210511 -9569.428 102.509766 58.62635
+tree-210510 -9576.266 103.22461 58.794914
+tree-12580 -9518.102 113.61133 59.04477
+tree-210508 -9580.158 107.26953 59.418373
+tree-12683 -9568.859 141.8418 59.4273
+tree-599354 -9513.619 102.8457 58.4897
+tree-12576 -9532.73 148.94531 60.039783
+tree-210509 -9588.844 117.171875 59.071415
+open-spawn -9548.5 115 60
+# A source-hull surface sample for canopy placement 12580, away from its clear origin.
+canopy-12580-surface -9520.363 100.507454 59.04477

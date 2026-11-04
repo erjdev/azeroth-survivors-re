@@ -53,8 +53,11 @@ opt-level = 3
 # Stormwind drops from a pinned 60 fps to ~45; the warm incremental rebuild cost is ~0.
 [profile.dev]
 opt-level = 1
-
-# No debuginfo trimming: `debug = "line-tables-only"` measures no recurring win on macOS + sccache.
+# Tests inherit this profile. Full macOS unpacked debug objects accumulated over
+# 1 TiB during iteration. Keep incremental code reuse, but opt in to debugger
+# symbols only for a diagnostic build (docs/SURVIVORS-DEVELOPMENT.md).
+debug = 0
+incremental = true
 
 # The shipping build (`--profile ship`): fat LTO measures -1.0 cpu_ms (-5 %) against `release`,
 # which stays the measured profile because fat LTO's link time would tax every iteration.

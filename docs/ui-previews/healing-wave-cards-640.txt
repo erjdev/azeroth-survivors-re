@@ -1,0 +1,5 @@
+page=cards
+width=640
+height=720
+scale=1.25
+abilities=healing_wave:0,healing_wave:1,healing_wave:5

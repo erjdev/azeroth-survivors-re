@@ -1,0 +1,5 @@
+# First shared ring, compact detail view.
+page=codex
+entry=ring:0
+width=640
+height=720

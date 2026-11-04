@@ -5,6 +5,12 @@
 
 use std::io::BufRead;
 
+struct CandidateGroup {
+    name: String,
+    map: String,
+    points: Vec<(f32, f32)>,
+}
+
 fn main() -> anyhow::Result<()> {
     let data = benilla_formats::wow_data().expect("no WoW install found (set $WOW_DATA)");
     let mut chain = benilla_formats::open_chain(&data)?;
@@ -12,7 +18,7 @@ fn main() -> anyhow::Result<()> {
     let mut mesh_cache: std::collections::HashMap<(String, u32, u32), benilla_formats::TileMesh> =
         std::collections::HashMap::new();
 
-    let mut groups: Vec<(String, String, Vec<(f32, f32)>)> = Vec::new();
+    let mut groups: Vec<CandidateGroup> = Vec::new();
     for line in std::io::stdin().lock().lines() {
         let line = line?;
         let p: Vec<&str> = line.split_whitespace().collect();
@@ -22,12 +28,21 @@ fn main() -> anyhow::Result<()> {
         let (name, map) = (p[0].to_string(), p[1].to_string());
         let (x, y): (f32, f32) = (p[2].parse()?, p[3].parse()?);
         match groups.last_mut() {
-            Some(g) if g.0 == name => g.2.push((x, y)),
-            _ => groups.push((name, map, vec![(x, y)])),
+            Some(g) if g.name == name => g.points.push((x, y)),
+            _ => groups.push(CandidateGroup {
+                name,
+                map,
+                points: vec![(x, y)],
+            }),
         }
     }
 
-    for (name, map, cands) in groups {
+    for CandidateGroup {
+        name,
+        map,
+        points: cands,
+    } in groups
+    {
         if !tiles_by_map.contains_key(&map) {
             tiles_by_map.insert(
                 map.clone(),

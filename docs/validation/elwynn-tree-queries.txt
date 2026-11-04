@@ -1,0 +1,53 @@
+Read-only streamed-world queries; not hero traversal or proof of exact trunk contact.
+Map 0, Elwynn spawn focus; 12 tree placement origins within 50 yards.
+Directions and start positions are Bevy coordinates; distances are yards.
+
+settled focus Some((31, 49)), points 12; read-only queries, not hero movement
+tree12576 direction Vec3(1.0, 0.0, 0.0): no start floor
+tree12576 direction Vec3(-1.0, 0.0, 0.0): no start floor
+tree12576 direction Vec3(0.0, 0.0, 1.0), start Vec3(-148.94531, 60.17267, 9526.73), slide advance 4.170, travel advance 0.000, requested 12, line clear false
+tree12576 direction Vec3(0.0, 0.0, -1.0), start Vec3(-148.94531, 60.457203, 9538.73), slide advance 12.000, travel advance 0.000, requested 12, line clear true
+tree12578 direction Vec3(1.0, 0.0, 0.0), start Vec3(-160.49414, 59.453476, 9521.674), slide advance 5.569, travel advance 4.000, requested 12, line clear true
+tree12578 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-148.49414, 59.870316, 9521.674), slide advance 6.444, travel advance 5.510, requested 12, line clear true
+tree12578 direction Vec3(0.0, 0.0, 1.0), start Vec3(-154.49414, 59.660084, 9515.674), slide advance 5.109, travel advance 4.379, requested 12, line clear true
+tree12578 direction Vec3(0.0, 0.0, -1.0), start Vec3(-154.49414, 59.849823, 9527.674), slide advance 6.891, travel advance 5.527, requested 12, line clear true
+tree12579 direction Vec3(1.0, 0.0, 0.0), start Vec3(-160.32031, 59.51929, 9527.818), slide advance 5.772, travel advance 5.426, requested 12, line clear false
+tree12579 direction Vec3(-1.0, 0.0, 0.0): no start floor
+tree12579 direction Vec3(0.0, 0.0, 1.0), start Vec3(-154.32031, 59.83781, 9521.818), slide advance 6.221, travel advance 5.347, requested 12, line clear false
+tree12579 direction Vec3(0.0, 0.0, -1.0), start Vec3(-154.32031, 59.872833, 9533.818), slide advance 6.087, travel advance 0.000, requested 12, line clear true
+tree12580 direction Vec3(1.0, 0.0, 0.0), start Vec3(-119.61133, 58.892662, 9518.102), slide advance 11.958, travel advance 12.000, requested 12, line clear true
+tree12580 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-107.61133, 59.06004, 9518.102), slide advance 12.000, travel advance 12.000, requested 12, line clear true
+tree12580 direction Vec3(0.0, 0.0, 1.0), start Vec3(-113.61133, 58.494022, 9512.102), slide advance 11.882, travel advance 12.000, requested 12, line clear true
+tree12580 direction Vec3(0.0, 0.0, -1.0), start Vec3(-113.61133, 59.45519, 9524.102), slide advance 12.000, travel advance 12.000, requested 12, line clear true
+tree599354 direction Vec3(1.0, 0.0, 0.0), start Vec3(-108.8457, 58.6005, 9513.619), slide advance 6.275, travel advance 0.000, requested 12, line clear false
+tree599354 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-96.8457, 59.775616, 9513.619), slide advance 4.978, travel advance 3.308, requested 12, line clear false
+tree599354 direction Vec3(0.0, 0.0, 1.0), start Vec3(-102.8457, 58.645927, 9507.619), slide advance 5.406, travel advance 2.594, requested 12, line clear false
+tree599354 direction Vec3(0.0, 0.0, -1.0), start Vec3(-102.8457, 59.448917, 9519.619), slide advance 5.683, travel advance 0.000, requested 12, line clear true
+tree12683 direction Vec3(1.0, 0.0, 0.0), start Vec3(-147.8418, 59.48523, 9568.859), slide advance 2.127, travel advance 0.367, requested 12, line clear false
+tree12683 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-135.8418, 61.07104, 9568.859), slide advance 0.219, travel advance 0.000, requested 12, line clear false
+tree12683 direction Vec3(0.0, 0.0, 1.0), start Vec3(-141.8418, 60.978405, 9562.859), slide advance 3.011, travel advance 0.000, requested 12, line clear false
+tree12683 direction Vec3(0.0, 0.0, -1.0), start Vec3(-141.8418, 59.43847, 9574.859), slide advance 4.394, travel advance 0.064, requested 12, line clear false
+tree210507 direction Vec3(1.0, 0.0, 0.0), start Vec3(-110.18945, 59.406387, 9588.037), slide advance 4.434, travel advance 2.517, requested 12, line clear false
+tree210507 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-98.18945, 60.425766, 9588.037), slide advance 5.588, travel advance 1.718, requested 12, line clear false
+tree210507 direction Vec3(0.0, 0.0, 1.0), start Vec3(-104.18945, 59.71005, 9582.037), slide advance 3.656, travel advance 3.222, requested 12, line clear false
+tree210507 direction Vec3(0.0, 0.0, -1.0), start Vec3(-104.18945, 59.99837, 9594.037), slide advance 0.618, travel advance 0.000, requested 12, line clear false
+tree210508 direction Vec3(1.0, 0.0, 0.0), start Vec3(-113.26953, 59.394848, 9580.158), slide advance 1.653, travel advance 1.300, requested 12, line clear false
+tree210508 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-101.26953, 59.51549, 9580.158), slide advance 3.334, travel advance 2.454, requested 12, line clear false
+tree210508 direction Vec3(0.0, 0.0, 1.0), start Vec3(-107.26953, 59.454918, 9574.158), slide advance 3.414, travel advance 1.010, requested 12, line clear false
+tree210508 direction Vec3(0.0, 0.0, -1.0), start Vec3(-107.26953, 59.693703, 9586.158), slide advance 2.463, travel advance 2.133, requested 12, line clear false
+tree210509 direction Vec3(1.0, 0.0, 0.0), start Vec3(-123.171875, 59.301243, 9588.844), slide advance 4.756, travel advance 3.055, requested 12, line clear false
+tree210509 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-111.171875, 59.293365, 9588.844), slide advance 5.373, travel advance 0.393, requested 12, line clear false
+tree210509 direction Vec3(0.0, 0.0, 1.0), start Vec3(-117.171875, 59.269516, 9582.844), slide advance 3.786, travel advance 3.296, requested 12, line clear false
+tree210509 direction Vec3(0.0, 0.0, -1.0), start Vec3(-117.171875, 59.352875, 9594.844), slide advance 0.929, travel advance 0.213, requested 12, line clear false
+tree210510 direction Vec3(1.0, 0.0, 0.0), start Vec3(-109.22461, 59.530148, 9576.266), slide advance 6.061, travel advance 0.000, requested 12, line clear true
+tree210510 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-97.22461, 58.966995, 9576.266), slide advance 5.419, travel advance 5.401, requested 12, line clear false
+tree210510 direction Vec3(0.0, 0.0, 1.0), start Vec3(-103.22461, 59.06974, 9570.266), slide advance 5.125, travel advance 0.000, requested 12, line clear true
+tree210510 direction Vec3(0.0, 0.0, -1.0), start Vec3(-103.22461, 59.71245, 9582.266), slide advance 5.809, travel advance 5.513, requested 12, line clear false
+tree210511 direction Vec3(1.0, 0.0, 0.0), start Vec3(-108.509766, 59.374348, 9569.428), slide advance 5.929, travel advance 4.371, requested 12, line clear true
+tree210511 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-96.509766, 58.88147, 9569.428), slide advance 7.296, travel advance 5.544, requested 12, line clear true
+tree210511 direction Vec3(0.0, 0.0, 1.0), start Vec3(-102.509766, 58.88147, 9563.428), slide advance 6.416, travel advance 5.574, requested 12, line clear true
+tree210511 direction Vec3(0.0, 0.0, -1.0), start Vec3(-102.509766, 59.219627, 9575.428), slide advance 4.694, travel advance 3.893, requested 12, line clear true
+tree210512 direction Vec3(1.0, 0.0, 0.0), start Vec3(-108.646484, 59.37712, 9594.459), slide advance 9.910, travel advance 4.946, requested 12, line clear false
+tree210512 direction Vec3(-1.0, 0.0, 0.0), start Vec3(-96.646484, 60.919704, 9594.459), slide advance 6.749, travel advance 5.379, requested 12, line clear true
+tree210512 direction Vec3(0.0, 0.0, 1.0), start Vec3(-102.646484, 60.22172, 9588.459), slide advance 6.222, travel advance 4.000, requested 12, line clear false
+tree210512 direction Vec3(0.0, 0.0, -1.0), start Vec3(-102.646484, 59.450333, 9600.459), slide advance 5.639, travel advance 5.604, requested 12, line clear false

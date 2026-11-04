@@ -6,8 +6,8 @@ use bevy::prelude::*;
 use super::enemies::Enemy;
 use super::hero::{self, Hero};
 use super::units::{flat, Fx};
+use super::Floor;
 use super::{Phase, Run};
-use benilla_world::world_point::WorldPoint;
 
 pub(super) const LEARN_LEVEL: u32 = 5;
 pub(super) const KEY: KeyCode = KeyCode::KeyF;
@@ -26,6 +26,7 @@ pub(super) enum Move {
     Scatter(f32),
 }
 
+#[derive(Clone, Copy)]
 pub(super) struct Mobility {
     pub spell: u32,
     pub name: &'static str,
@@ -33,6 +34,16 @@ pub(super) struct Mobility {
     pub cooldown: f32,
     pub secs: f32,
     pub desc: &'static str,
+}
+
+impl Mobility {
+    pub(super) fn description(&self) -> String {
+        if let Move::Charge(range) = self.kind {
+            format!("Charge an enemy within {range:.0} yards, stunning it for {:.1} sec. Without a target, lunge forward.", self.secs)
+        } else {
+            self.desc.to_owned()
+        }
+    }
 }
 
 /// One per class, indexed by class id.
@@ -151,12 +162,36 @@ pub(super) struct MobilityState {
     pub vanish_t: f32,
 }
 
+impl MobilityState {
+    fn advance(&mut self, dt: f32, phase: Phase, loading: bool) {
+        if phase != Phase::Playing || loading {
+            return;
+        }
+        self.cd = (self.cd - dt).max(0.0);
+        self.haste_t = (self.haste_t - dt).max(0.0);
+        self.vanish_t = (self.vanish_t - dt).max(0.0);
+    }
+}
+
 impl Run {
     /// The class's mobility once the hero is level enough.
-    pub(super) fn mobility(&self) -> Option<&'static Mobility> {
-        (self.level >= LEARN_LEVEL)
-            .then(|| for_class(self.class.id))
-            .flatten()
+    pub(super) fn mobility(&self) -> Option<Mobility> {
+        if self.level < LEARN_LEVEL {
+            return None;
+        }
+        let mut def = *for_class(self.class.id)?;
+        if self.class.id == 1 {
+            let effect = self.milestones.cast("charge");
+            def.cooldown *= effect.cooldown;
+            def.secs *= effect.duration;
+        }
+        if self.class.id == 4 {
+            def.cooldown *= self.milestones.cast("sprint").cooldown;
+        }
+        if self.class.id == 5 {
+            def.cooldown *= self.milestones.cast("fade").cooldown;
+        }
+        Some(def)
     }
 
     /// The run speed's multiplier from a haste still running.
@@ -175,20 +210,23 @@ pub(super) fn cast_mobility(
     time: Res<Time>,
     keys: Res<ButtonInput<KeyCode>>,
     phase: Res<State<Phase>>,
+    loading: Res<crate::loading_screen::LoadingScreen>,
     mut run: ResMut<Run>,
-    world: WorldPoint,
+    world: Floor,
     mut hero: Query<(Entity, &mut Transform), With<Hero>>,
     mut enemies: Query<(Entity, &Transform, &mut Enemy), Without<Hero>>,
     selection: Res<super::Selection>,
     aim: Res<hero::AimPoint>,
     mut fx: Fx,
+    mut rng: ResMut<super::Rng>,
 ) {
-    let dt = time.delta_secs();
-    let m = &mut run.mobile;
-    m.cd = (m.cd - dt).max(0.0);
-    m.haste_t = (m.haste_t - dt).max(0.0);
-    m.vanish_t = (m.vanish_t - dt).max(0.0);
-    if *phase.get() != Phase::Playing || run.dead_t.is_some() || !keys.just_pressed(KEY) {
+    run.mobile
+        .advance(time.delta_secs(), *phase.get(), loading.covering());
+    if *phase.get() != Phase::Playing
+        || loading.covering()
+        || !run.alive()
+        || !keys.just_pressed(KEY)
+    {
         return;
     }
     let Some(def) = run.mobility() else { return };
@@ -215,16 +253,13 @@ pub(super) fn cast_mobility(
             p
         }
     };
-    let ground = |p: Vec3| world.terrain_height_under(p).unwrap_or(p.y);
     match def.kind {
         Move::Blink(yd) => {
             fx.cast(me, def.spell, &[me], None);
             // To the cursor, or as far as the spell reaches toward it.
             let far = cursor.map_or(yd, |a| flat(a - pos).length().min(yd));
             tf.rotation = Quat::from_rotation_y(super::units::yaw_toward(toward));
-            let mut to = leash(pos + toward * far);
-            to.y = ground(to);
-            tf.translation = to;
+            tf.translation = world.travel(pos, leash(pos + toward * far), super::HERO_RADIUS);
         }
         Move::Charge(yd) => {
             // The enemy in reach nearest the cursor (or the hero, with none).
@@ -234,25 +269,29 @@ pub(super) fn cast_mobility(
                 .filter(|(_, t, e)| !e.dead && hero::reach(pos, t.translation) <= yd)
                 .map(|(e, t, _)| (e, t.translation, hero::reach(mark, t.translation)))
                 .min_by(|a, b| a.2.total_cmp(&b.2));
-            let to = match target {
-                Some((e, at, _)) => {
-                    if let Ok((_, _, mut en)) = enemies.get_mut(e) {
-                        en.stun_t = en.stun_t.max(def.secs);
-                    }
+            let desired = match target {
+                Some((_, at, _)) => {
                     let dir = flat(at - pos).normalize_or(facing);
                     tf.rotation = Quat::from_rotation_y(super::units::yaw_toward(dir));
-                    fx.cast(me, def.spell, &[e], None);
                     at - dir * 1.5
                 }
                 None => {
-                    fx.cast(me, def.spell, &[me], None);
                     tf.rotation = Quat::from_rotation_y(super::units::yaw_toward(toward));
                     pos + toward * yd * 0.5
                 }
             };
-            let mut to = leash(to);
-            to.y = ground(to);
+            let to = world.travel(pos, leash(desired), super::HERO_RADIUS);
             tf.translation = to;
+            let reached = target
+                .filter(|(_, at, _)| hero::reach(to, *at) <= 2.0 && world.line_clear(to, *at));
+            if let Some((e, _, _)) = reached {
+                if let Ok((_, _, mut en)) = enemies.get_mut(e) {
+                    en.stun_t = en.stun_t.max(def.secs);
+                }
+                fx.cast(me, def.spell, &[e], None);
+            } else {
+                fx.cast(me, def.spell, &[me], None);
+            }
         }
         Move::Haste(x) => {
             fx.cast(me, def.spell, &[me], None);
@@ -274,5 +313,107 @@ pub(super) fn cast_mobility(
             }
         }
     }
+    if run.class.id == 4 {
+        let chance = run.milestones.sprint_cleanse_chance();
+        if chance > 0. && (chance >= 1. || rng.f32() < chance) {
+            let now = run.elapsed;
+            run.incoming_slows.cleanse(now);
+        }
+    }
     run.mobile.cd = def.cooldown;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use survivors_core::talents::Milestones;
+
+    #[test]
+    fn endurance_changes_only_learned_sprint_cooldown_and_refunds() {
+        for rank in [0, 1, 2, 255] {
+            let mut run = Run {
+                class: &super::super::data::CLASSES[3],
+                milestones: Milestones {
+                    class: 3,
+                    ..Default::default()
+                }
+                .with_ranks(&[(1, 204, rank)]),
+                ..Default::default()
+            };
+            assert!(run.mobility().is_none());
+            run.level = LEARN_LEVEL;
+            let sprint = run.mobility().unwrap();
+            assert!((sprint.cooldown - (15.0 - 1.5 * f32::from(rank.min(2)))).abs() < 0.00001);
+            assert_eq!(sprint.kind, Move::Haste(1.8));
+            assert_eq!(sprint.secs, 4.0);
+            run.milestones = run.milestones.with_ranks(&[]);
+            assert_eq!(run.mobility().unwrap().cooldown, 15.0);
+        }
+    }
+
+    #[test]
+    fn improved_fade_changes_only_learned_escape_cooldown_and_refunds() {
+        for rank in [0, 1, 2, 255] {
+            let mut run = Run {
+                class: &super::super::data::CLASSES[4],
+                milestones: Milestones {
+                    class: 4,
+                    ..Default::default()
+                }
+                .with_ranks(&[(2, 483, rank)]),
+                ..Default::default()
+            };
+            assert!(run.mobility().is_none());
+            run.level = LEARN_LEVEL;
+            let fade = run.mobility().unwrap();
+            assert!((fade.cooldown - (18.0 - 1.8 * f32::from(rank.min(2)))).abs() < 0.00001);
+            assert_eq!(fade.kind, Move::Vanish(1.4));
+            assert_eq!(fade.secs, 4.0);
+            run.milestones = run.milestones.with_ranks(&[]);
+            assert_eq!(run.mobility().unwrap().cooldown, 18.0);
+        }
+    }
+
+    #[test]
+    fn charge_talents_resolve_for_cast_sweep_and_tooltip() {
+        let mut run = Run {
+            class: &super::super::data::CLASSES[0],
+            milestones: Milestones::default().with_ranks(&[(0, 126, 2), (1, 1543, 2)]),
+            ..Default::default()
+        };
+        assert!(run.mobility().is_none());
+        run.level = LEARN_LEVEL;
+        let trained = run.mobility().unwrap();
+        assert!((trained.cooldown - 6.4).abs() < 0.00001);
+        assert!((trained.secs - 2.1).abs() < 0.00001);
+        assert_eq!(trained.kind, Move::Charge(25.));
+        assert!(trained.description().contains("2.1 sec"));
+        run.milestones = run.milestones.with_ranks(&[]);
+        assert_eq!(run.mobility().unwrap().cooldown, 8.);
+        assert_eq!(run.mobility().unwrap().secs, 1.5);
+        run.class = &super::super::data::CLASSES[1];
+        run.milestones = Milestones::default().with_ranks(&[(0, 126, 2), (1, 1543, 2)]);
+        assert_eq!(run.mobility().unwrap().cooldown, 15.);
+        assert_eq!(run.mobility().unwrap().secs, 5.);
+    }
+
+    #[test]
+    fn mobility_timers_freeze_outside_gameplay_and_during_loading() {
+        let mut state = MobilityState {
+            cd: 8.,
+            haste: 1.8,
+            haste_t: 4.,
+            vanish_t: 3.,
+        };
+        for phase in [Phase::Menu, Phase::Paused, Phase::LevelUp, Phase::GameOver] {
+            state.advance(10., phase, false);
+            assert_eq!((state.cd, state.haste_t, state.vanish_t), (8., 4., 3.));
+        }
+        state.advance(10., Phase::Playing, true);
+        assert_eq!((state.cd, state.haste_t, state.vanish_t), (8., 4., 3.));
+        state.advance(2., Phase::Playing, false);
+        assert_eq!((state.cd, state.haste_t, state.vanish_t), (6., 2., 1.));
+        state.advance(10., Phase::Playing, false);
+        assert_eq!((state.cd, state.haste_t, state.vanish_t), (0., 0., 0.));
+    }
 }

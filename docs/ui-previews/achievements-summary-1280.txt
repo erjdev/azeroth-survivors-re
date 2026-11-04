@@ -1,0 +1,6 @@
+page=achievements
+category=summary
+width=1280
+height=720
+scale=1
+hero=1

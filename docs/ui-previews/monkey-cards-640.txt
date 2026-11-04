@@ -1,0 +1,6 @@
+page=cards
+width=640
+height=720
+hero=3
+abilities=aspect_of_the_monkey:0,aspect_of_the_monkey:1,aspect_of_the_monkey:7
+profile=selected

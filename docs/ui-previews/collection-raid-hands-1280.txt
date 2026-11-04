@@ -1,0 +1,6 @@
+# Inspect the current class raid armor without granting or equipping it.
+# Inspection only; existing zone readiness and acquisition locks still apply.
+page = collection
+width = 1280
+height = 720
+piece = raid epic:hands

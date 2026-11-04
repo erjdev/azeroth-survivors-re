@@ -10,6 +10,14 @@ use super::data::{self, Kind};
 use super::hud::{self, Choice, HudFont, Offer, SpellIcon};
 use super::{Phase, Rng, Run};
 
+/// A developer-only presentation overlay; never a playable offer.
+#[derive(Resource, Default)]
+pub(super) struct PreviewHand(pub bool);
+
+pub(super) fn preview_active(preview: Res<PreviewHand>) -> bool {
+    preview.0
+}
+
 /// WoW's item-quality colours (`ITEM_QUALITY_COLORS`).
 pub(super) const COMMON: Color = Color::srgb(1.0, 1.0, 1.0);
 pub(super) const UNCOMMON: Color = Color::srgb(0.118, 1.0, 0.0);
@@ -17,7 +25,6 @@ pub(super) const RARE: Color = Color::srgb(0.0, 0.439, 0.867);
 pub(super) const EPIC: Color = Color::srgb(0.639, 0.208, 0.933);
 pub(super) const LEGENDARY: Color = Color::srgb(1.0, 0.502, 0.0);
 
-const CARD_W: f32 = 236.0;
 const CARD_H: f32 = 330.0;
 /// Seconds between one card landing and the next.
 const DEAL_STAGGER: f32 = 0.09;
@@ -61,7 +68,7 @@ fn power(def: &data::AbilityDef) -> Option<f32> {
     let area = |r: f32| 1.0 + r * 0.6;
     let reach = match def.kind {
         Kind::Bolt | Kind::Strike => def.count as f32 + def.radius * 0.4,
-        Kind::Melee | Kind::Orbit => def.count as f32,
+        Kind::Channel | Kind::Melee | Kind::Orbit => def.count as f32,
         Kind::Nova | Kind::Cone | Kind::Ground | Kind::GroundSelf | Kind::Aura => area(def.radius),
         Kind::Chain => def.count as f32 + 1.0,
         Kind::Dot => def.count as f32,
@@ -72,7 +79,9 @@ fn power(def: &data::AbilityDef) -> Option<f32> {
     } else {
         def.dot * def.duration.max(1.0)
     };
-    let ticks = if matches!(def.kind, Kind::Ground | Kind::GroundSelf) && def.duration > 0.0 {
+    let ticks = if matches!(def.kind, Kind::Channel | Kind::Ground | Kind::GroundSelf)
+        && def.duration > 0.0
+    {
         def.duration
     } else {
         1.0
@@ -114,7 +123,13 @@ pub(super) fn rarity(choice: Choice, run: &Run) -> Rarity {
             let targets = [3, 5, 7].contains(&next)
                 && matches!(
                     o.def.kind,
-                    Kind::Bolt | Kind::Strike | Kind::Melee | Kind::Dot | Kind::Chain | Kind::Orbit
+                    Kind::Bolt
+                        | Kind::Strike
+                        | Kind::Melee
+                        | Kind::Dot
+                        | Kind::Curse
+                        | Kind::Chain
+                        | Kind::Orbit
                 );
             if next == data::MAX_ABILITY_LEVEL {
                 Rarity::Legendary
@@ -151,17 +166,13 @@ pub(super) struct Card {
     rarity: Rarity,
 }
 
-/// The rarity glow behind the card, which swells under the cursor.
+/// The rarity lighting inside the card face.
 #[derive(Component)]
 pub(super) struct CardGlow;
 
 /// The shine that sweeps across a card as it lands.
 #[derive(Component)]
 pub(super) struct CardShine(usize);
-
-/// The radiant burst behind the row, turning slowly.
-#[derive(Component)]
-pub(super) struct Rays;
 
 /// The pending pick: the card bursts, then the choice applies.
 #[derive(Resource, Default)]
@@ -173,10 +184,13 @@ const PICK_SECS: f32 = 0.28;
 pub(super) fn deal_cards(
     mut commands: Commands,
     offer: Res<Offer>,
+    strings: Option<Res<super::localization::Strings>>,
+    preview: Res<PreviewHand>,
     run: Res<Run>,
+    mut account: ResMut<super::account::Account>,
     spells: Option<Res<crate::ui_action::Spells>>,
     font: Res<HudFont>,
-    rows: Query<Entity, With<hud::OfferRow>>,
+    mut rows: Query<(Entity, &mut ScrollPosition), With<hud::OfferRow>>,
     mut titles: Query<&mut Text, With<hud::LevelTitle>>,
     mut subs: Query<&mut Text, (With<hud::LevelUpSub>, Without<hud::LevelTitle>)>,
 ) {
@@ -188,7 +202,7 @@ pub(super) fn deal_cards(
     }
     if let Ok(mut sub) = subs.single_mut() {
         let mut line = if run.trading {
-            "Upgrade a spell you own".to_string()
+            "Choose your chest reward".to_string()
         } else {
             "Choose your power".to_string()
         };
@@ -206,10 +220,38 @@ pub(super) fn deal_cards(
             line.push_str("  ·  ");
             line.push_str(&hints.join("  "));
         }
-        **sub = line;
+        **sub = if preview.0 {
+            "UI preview · edit the preview file to change cards or return to a page".into()
+        } else {
+            line
+        };
     }
-    let Ok(row) = rows.single() else { return };
+    let Ok((row, mut scroll)) = rows.single_mut() else {
+        return;
+    };
+    // Record the actual hand being built, never discarded random candidates (e.g. banish).
+    if let Some(class) = (!preview.0)
+        .then(|| {
+            super::data::CLASSES
+                .iter()
+                .position(|class| class.id == run.class.id)
+        })
+        .flatten()
+    {
+        account.remember_jewelry(
+            class,
+            offer.choices().iter().filter_map(|choice| match choice {
+                Choice::Jewel(item) => Some(*item),
+                _ => None,
+            }),
+        );
+        account.grant_new();
+        account.save();
+    }
+    scroll.0 = Vec2::ZERO;
     commands.entity(row).despawn_related::<Children>();
+    let fallback = super::localization::Strings::default();
+    let strings = strings.as_deref().unwrap_or(&fallback);
     let f = &font.0;
     commands.entity(row).with_children(|row| {
         for (i, &choice) in offer.choices().iter().enumerate() {
@@ -229,8 +271,12 @@ pub(super) fn deal_cards(
                 Interaction::default(),
                 RelativeCursorPosition::default(),
                 Node {
-                    width: Val::Px(CARD_W),
-                    height: Val::Px(CARD_H),
+                    flex_basis: Val::Percent(22.0),
+                    flex_grow: 1.0,
+                    flex_shrink: 0.0,
+                    min_width: Val::Px(200.0),
+                    max_width: Val::Px(280.0),
+                    min_height: Val::Px(CARD_H),
                     flex_direction: FlexDirection::Column,
                     align_items: AlignItems::Center,
                     padding: UiRect::new(
@@ -251,13 +297,6 @@ pub(super) fn deal_cards(
                     ColorStop::percent(Color::srgba(0.02, 0.015, 0.01, 0.98), 100.0),
                 ])),
                 BorderColor::all(rc),
-                BoxShadow::new(
-                    rc.with_alpha(0.0),
-                    Val::Px(0.0),
-                    Val::Px(0.0),
-                    Val::Px(0.0),
-                    Val::Px(26.0),
-                ),
                 UiTransform {
                     translation: Val2::px(0.0, 260.0),
                     scale: Vec2::splat(0.6),
@@ -274,6 +313,7 @@ pub(super) fn deal_cards(
                         right: Val::Px(0.0),
                         top: Val::Px(0.0),
                         height: Val::Px(150.0),
+                        border_radius: BorderRadius::all(Val::Px(8.0)),
                         ..default()
                     },
                     BackgroundGradient::from(RadialGradient::new(
@@ -321,19 +361,38 @@ pub(super) fn deal_cards(
                     ),
                 ))
                 .with_children(|s| {
-                    s.spawn((
+                    let mut node = s.spawn((
                         Node {
                             width: Val::Percent(100.0),
                             height: Val::Percent(100.0),
                             border_radius: BorderRadius::all(Val::Px(4.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
                             ..default()
                         },
                         ImageNode {
-                            color: Color::srgba(0.0, 0.0, 0.0, 0.6),
+                            color: Color::NONE,
                             ..default()
                         },
-                        SpellIcon(card.spell),
                     ));
+                    match card.icon {
+                        hud::CardIcon::Spell(id) => {
+                            node.insert(SpellIcon(id));
+                        }
+                        hud::CardIcon::Item(display) => {
+                            node.insert(super::gear_icons::GearIcon(display, Color::WHITE));
+                        }
+                        hud::CardIcon::Missing => {
+                            node.remove::<ImageNode>().with_children(|fallback| {
+                                fallback.spawn(hud::text_bundle(
+                                    f,
+                                    "?",
+                                    32.,
+                                    Color::srgb(0.6, 0.6, 0.6),
+                                ));
+                            });
+                        }
+                    }
                 });
                 c.spawn(hud::centered_bundle(
                     f,
@@ -383,34 +442,63 @@ pub(super) fn deal_cards(
                         ColorStop::percent(rc.with_alpha(0.0), 100.0),
                     ])),
                 ));
-                c.spawn(hud::centered_bundle(
-                    f,
-                    card.desc,
-                    14.0,
-                    Color::srgb(0.92, 0.9, 0.84),
-                ));
+                c.spawn(hud::centered_bundle(f, "", 14.0, hud::inline::PROSE))
+                    .with_children(|paragraph| {
+                        if !card.intro.is_empty() {
+                            paragraph.spawn((
+                                TextSpan::new(format!("{} ", card.intro)),
+                                TextColor(hud::inline::PROSE),
+                                TextFont {
+                                    font: f.clone(),
+                                    font_size: 14.0,
+                                    ..default()
+                                },
+                            ));
+                        }
+                        for (text, color) in hud::inline::describe(choice, &run, strings) {
+                            paragraph.spawn((
+                                TextSpan::new(text),
+                                TextColor(color),
+                                TextFont {
+                                    font: f.clone(),
+                                    font_size: 14.0,
+                                    ..default()
+                                },
+                            ));
+                        }
+                    });
                 // The landing shine, a bright band that crosses once.
                 c.spawn((
                     CardShine(i),
                     Node {
                         position_type: PositionType::Absolute,
-                        top: Val::Px(-40.0),
-                        bottom: Val::Px(-40.0),
-                        width: Val::Px(70.0),
-                        left: Val::Px(-120.0),
+                        top: Val::Px(0.0),
+                        bottom: Val::Px(0.0),
+                        left: Val::Px(0.0),
+                        right: Val::Px(0.0),
+                        border_radius: BorderRadius::all(Val::Px(8.0)),
                         ..default()
                     },
-                    BackgroundGradient::from(LinearGradient::to_right(vec![
-                        ColorStop::percent(Color::srgba(1.0, 1.0, 1.0, 0.0), 0.0),
-                        ColorStop::percent(Color::srgba(1.0, 0.97, 0.85, 0.28), 50.0),
-                        ColorStop::percent(Color::srgba(1.0, 1.0, 1.0, 0.0), 100.0),
-                    ])),
-                    UiTransform::from_rotation(Rot2::degrees(18.0)),
+                    landing_sheen(0.0),
                     bevy::ui::FocusPolicy::Pass,
                 ));
             });
         }
     });
+}
+
+// Animate stops inside a rounded card-sized surface, not an oversized rotated quad.
+// Percent stops preserve the sweep when the card is resized or transformed.
+fn landing_sheen(progress: f32) -> BackgroundGradient {
+    let center = -25.0 + progress * 150.0;
+    BackgroundGradient::from(LinearGradient::new(
+        108.0_f32.to_radians(),
+        vec![
+            ColorStop::percent(Color::srgba(1.0, 0.97, 0.85, 0.0), center - 20.0),
+            ColorStop::percent(Color::srgba(1.0, 0.97, 0.85, 0.28), center),
+            ColorStop::percent(Color::srgba(1.0, 0.97, 0.85, 0.0), center + 20.0),
+        ],
+    ))
 }
 
 fn ease_out_back(t: f32) -> f32 {
@@ -424,35 +512,34 @@ fn ease_out_back(t: f32) -> f32 {
 pub(super) fn animate_cards(
     time: Res<Time<Real>>,
     phase: Res<State<Phase>>,
+    preview: Res<PreviewHand>,
     mut cards: Query<(
         &mut Card,
         &Interaction,
         &RelativeCursorPosition,
         &mut UiTransform,
-        &mut BoxShadow,
+        &mut BorderColor,
         &mut Visibility,
     )>,
-    mut shines: Query<(&CardShine, &mut Node)>,
-    mut rays: Query<&mut UiTransform, (With<Rays>, Without<Card>)>,
+    mut shines: Query<(&CardShine, &mut BackgroundGradient)>,
     mut pending: ResMut<PendingPick>,
     mut run: ResMut<Run>,
     mut offer: ResMut<Offer>,
     mut rng: ResMut<Rng>,
     mut next: ResMut<NextState<Phase>>,
 ) {
-    if *phase.get() != Phase::LevelUp {
+    if *phase.get() != Phase::LevelUp && !preview.0 {
         pending.0 = None;
         return;
     }
+    if preview.0 {
+        pending.0 = None;
+    }
     let dt = time.delta_secs().min(0.05);
     let now = time.elapsed_secs();
-    for mut r in &mut rays {
-        r.rotation = Rot2::radians(now * 0.12);
-        r.scale = Vec2::splat(1.0 + 0.03 * (now * 1.7).sin());
-    }
     let chosen = pending.0.map(|(i, _)| i);
     let mut shine_at = [None::<f32>; 4];
-    for (mut card, interaction, cursor, mut tf, mut shadow, mut vis) in &mut cards {
+    for (mut card, interaction, cursor, mut tf, mut border, mut vis) in &mut cards {
         let card = &mut *card;
         card.t += dt;
         if card.t < 0.0 {
@@ -505,12 +592,9 @@ pub(super) fn animate_cards(
         tf.scale = Vec2::new(s * squash, s * (1.0 + card.tilt.y.abs() * 0.02));
         tf.rotation = Rot2::degrees((1.0 - e) * -14.0 + lean);
         let rc = card.rarity.color();
-        if let Some(sh) = shadow.0.first_mut() {
-            sh.color = rc.with_alpha((0.25 + 0.6 * h) * (1.0 - pick_fade));
-            sh.blur_radius = Val::Px(18.0 + 22.0 * h);
-            sh.spread_radius = Val::Px(2.0 + 4.0 * h);
-            sh.y_offset = Val::Px(6.0 + 10.0 * h);
-        }
+        // Hover emphasis stays on the rounded card instead of lighting a rectangular
+        // shadow surface across the backdrop and neighboring cards.
+        *border = BorderColor::all(rc.mix(&Color::WHITE, 0.35 * h));
         if pick_fade >= 1.0 {
             *vis = Visibility::Hidden;
         }
@@ -518,12 +602,12 @@ pub(super) fn animate_cards(
             shine_at[card.index] = Some(card.t);
         }
     }
-    for (shine, mut node) in &mut shines {
+    for (shine, mut gradient) in &mut shines {
         let Some(t) = shine_at.get(shine.0).copied().flatten() else {
             continue;
         };
         let u = ((t - DEAL_SECS * 0.6) / 0.5).clamp(0.0, 1.0);
-        node.left = Val::Px(-120.0 + u * (CARD_W + 200.0));
+        *gradient = landing_sheen(u);
     }
     if let Some((i, t)) = pending.0.as_mut() {
         *t += dt;
@@ -573,7 +657,9 @@ pub(super) fn choose_card(
     ];
     if run.banish_armed {
         for (i, key) in digits.into_iter().enumerate() {
-            if keys.just_pressed(key) && hud::banish_card(&mut run, &mut offer, &mut rng, i) {
+            if keys.just_pressed(key) {
+                hud::banish_card(&mut run, &mut offer, &mut rng, i);
+                // An unavailable replacement must not turn this same key into a pick.
                 return;
             }
         }
@@ -589,5 +675,98 @@ pub(super) fn choose_card(
     }
     if let Some(i) = pick.filter(|&i| i < offer.len()) {
         pending.0 = Some((i, 0.0));
+    }
+}
+
+/// Keep wrapped hands reachable without reducing text or hit targets below readable sizes.
+pub(super) fn scroll_hand(
+    phase: Res<State<Phase>>,
+    preview: Res<PreviewHand>,
+    pause: Res<hud::PausePage>,
+    keys: Res<ButtonInput<KeyCode>>,
+    mut wheel: MessageReader<bevy::input::mouse::MouseWheel>,
+    mut rows: Query<(&ComputedNode, &mut ScrollPosition), With<hud::OfferRow>>,
+) {
+    let delta: f32 = wheel
+        .read()
+        .map(|event| match event.unit {
+            bevy::input::mouse::MouseScrollUnit::Line => event.y * 32.0,
+            bevy::input::mouse::MouseScrollUnit::Pixel => event.y,
+        })
+        .sum();
+    if pause.open || (*phase.get() != Phase::LevelUp && !preview.0) {
+        return;
+    }
+    for (node, mut scroll) in &mut rows {
+        let maximum = ((node.content_size.y - node.size.y) * node.inverse_scale_factor).max(0.0);
+        let page = node.size.y * node.inverse_scale_factor * 0.8;
+        let offset = scroll.0.y.clamp(0.0, maximum);
+        scroll.0.y = if keys.just_pressed(KeyCode::Home) {
+            0.0
+        } else if keys.just_pressed(KeyCode::End) {
+            maximum
+        } else if keys.just_pressed(KeyCode::PageUp) {
+            (offset - page).max(0.0)
+        } else if keys.just_pressed(KeyCode::PageDown) {
+            (offset + page).min(maximum)
+        } else if delta != 0.0 {
+            (offset - delta).clamp(0.0, maximum)
+        } else {
+            continue; // Preserve intent through partial responsive layouts until actual input.
+        };
+    }
+}
+
+#[cfg(test)]
+mod hand_paging_tests {
+    use super::*;
+
+    #[test]
+    fn paging_reaches_wrapped_cards_in_logical_units_and_respects_overlays() {
+        let mut world = World::new();
+        world.insert_resource(State::new(Phase::LevelUp));
+        world.init_resource::<PreviewHand>();
+        world.init_resource::<hud::PausePage>();
+        world.init_resource::<ButtonInput<KeyCode>>();
+        world.init_resource::<Messages<bevy::input::mouse::MouseWheel>>();
+        let row = world
+            .spawn((
+                hud::OfferRow,
+                ComputedNode {
+                    size: Vec2::splat(400.),
+                    content_size: Vec2::new(400., 1400.),
+                    inverse_scale_factor: 0.5,
+                    ..Default::default()
+                },
+                ScrollPosition::default(),
+            ))
+            .id();
+        let mut schedule = Schedule::default();
+        schedule.add_systems(scroll_hand);
+        for (key, expected) in [
+            (KeyCode::PageDown, 160.),
+            (KeyCode::End, 500.),
+            (KeyCode::PageUp, 340.),
+            (KeyCode::Home, 0.),
+        ] {
+            world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+            world.resource_mut::<ButtonInput<KeyCode>>().press(key);
+            schedule.run(&mut world);
+            assert_eq!(world.get::<ScrollPosition>(row).unwrap().0.y, expected);
+        }
+        world.resource_mut::<ButtonInput<KeyCode>>().reset_all();
+        world
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::End);
+        world.resource_mut::<hud::PausePage>().open = true;
+        schedule.run(&mut world);
+        assert_eq!(world.get::<ScrollPosition>(row).unwrap().0.y, 0.);
+        world.resource_mut::<hud::PausePage>().open = false;
+        world.insert_resource(State::new(Phase::Menu));
+        schedule.run(&mut world);
+        assert_eq!(world.get::<ScrollPosition>(row).unwrap().0.y, 0.);
+        world.resource_mut::<PreviewHand>().0 = true;
+        schedule.run(&mut world);
+        assert_eq!(world.get::<ScrollPosition>(row).unwrap().0.y, 500.);
     }
 }

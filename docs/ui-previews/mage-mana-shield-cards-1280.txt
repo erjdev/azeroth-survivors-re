@@ -1,0 +1,5 @@
+# Native menu preview; no gameplay session required.
+page = cards
+width = 1280
+height = 720
+abilities = mana_shield:0, mana_shield:1, mana_shield:4

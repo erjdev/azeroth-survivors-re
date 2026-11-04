@@ -9,6 +9,7 @@ description = "The world renderer: terrain, water, sky, weather, models, lightin
 workspace = true
 
 [features]
+survivors-visibility = ["benilla-assets/survivors-visibility"]
 # The dev/player seam, on by default. `benilla-assets` and `-formats` come in without default
 # features and their `dev` is forwarded here, or unification would put it back in a player build.
 default = ["dev"]

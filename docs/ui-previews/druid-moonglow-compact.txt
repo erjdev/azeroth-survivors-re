@@ -1,0 +1,6 @@
+# Native menu preview; select a Druid character.
+page = talents
+width = 640
+height = 720
+scale = 1.25
+talent = 783

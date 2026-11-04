@@ -1,16 +1,6 @@
-//! Guard for the one line that ships the pages' own scripts: `scripts/web-build.sh`'s `cp`.
-//!
-//! The two hosting pages (`web/index.html`, `crates/wenilla-realm/templates/play.html`) import
-//! plain ES modules that live beside them in `web/` — `boot.js`, `wasi_stubs.js`, `platform.js`.
-//! Nothing builds those: they are copied into `web/dist/` by hand-written filename, and
-//! `docker/realm.Dockerfile` then ships that directory as `/app/www`. Add an import, forget the
-//! `cp`, and the failure lands in production rather than in a build: the file 404s, and a
-//! *static* import that fails to resolve stops the whole module — no credential fetch, no
-//! `boot()`, a black page. (Both pages import `platform.js` dynamically for exactly that reason,
-//! which softens the blow to "no full-screen button" — but the trap is one static import away.)
-//!
-//! So: every `./name.js` the pages ask for that exists in `web/` must appear in that `cp`.
-//! Build outputs (`wenilla.js`, from wasm-bindgen) have no source file in `web/` and are skipped.
+//! Guard the scripts shipped by this checkout's standalone browser launcher.
+//! The realm service is a separate deployment, not a workspace crate here.
+//! Source modules must be copied into dist; only wasm-bindgen glue is generated.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -50,38 +40,40 @@ fn every_page_script_that_lives_in_web_is_copied_into_dist() {
     let cp = build
         .lines()
         .find(|l| l.trim_start().starts_with("cp web/"))
-        .expect("web-build.sh still has the `cp web/…` line that populates web/dist");
-
-    for page in ["web/index.html", "crates/wenilla-realm/templates/play.html"] {
-        for name in referenced_scripts(&read(page)) {
-            // Not every import has a source file: wenilla.js is wasm-bindgen's output, written
-            // straight into dist by the build itself.
-            if !root().join("web").join(&name).exists() {
-                continue;
-            }
-            assert!(
-                cp.contains(&format!("web/{name}")),
-                "{page} imports ./{name} and web/{name} exists, but scripts/web-build.sh never \
-                 copies it into web/dist — it would 404 in the built image.\n  cp line: {cp}"
-            );
+        .expect("web-build.sh has the cp line that populates web/dist");
+    let page = "web/index.html";
+    for name in referenced_scripts(&read(page)) {
+        // wasm-bindgen derives this module name from the input wasm basename.
+        // Every other import must exist as source; a typo must fail the gate.
+        if name == "wenilla.js" {
+            assert!(build.contains("/wenilla.wasm\""));
+            assert!(build
+                .contains("wasm-bindgen \"${bindgen_args[@]}\" --out-dir \"${DIST}\" \"${WASM}\""));
+            continue;
         }
+        assert!(
+            root().join("web").join(&name).is_file(),
+            "{page}: missing source module {name}"
+        );
+        assert!(
+            cp.contains(&format!("web/{name}")),
+            "{page} imports ./{name}, but web-build.sh does not copy it into dist: {cp}"
+        );
     }
 }
 
 #[test]
-fn the_pages_agree_on_the_platform_module() {
-    // platform.js is best-effort by contract (see its header): a page must import it
-    // dynamically, so a missing or broken module costs the button and never the boot.
-    for page in ["web/index.html", "crates/wenilla-realm/templates/play.html"] {
-        let text = read(page);
-        assert!(
-            text.contains("import('./platform.js')"),
-            "{page} should import ./platform.js dynamically (not statically): it must not be \
-             able to break the boot"
-        );
-        assert!(
-            text.contains("id=\"fs\""),
-            "{page} imports platform.js but has no #fs button for installFullscreenToggle"
-        );
-    }
+fn platform_storage_is_optional_and_off_the_boot_path() {
+    // The standalone launcher uses platform.js for durable storage. It has no
+    // separate HTML fullscreen button; failure of this helper must not block boot.
+    let text = read("web/index.html");
+    assert!(
+        text.contains("import('./platform.js')"),
+        "platform.js must remain a dynamic import"
+    );
+    assert!(
+        text.contains(".then(({ requestPersistentStorage }) => requestPersistentStorage())")
+            && text.contains(".catch((e) => console.warn('platform.js:', e))"),
+        "request persistence and handle an optional platform module failure"
+    );
 }

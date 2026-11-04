@@ -18,6 +18,8 @@ pub mod coords;
 pub mod materials;
 pub mod minimap_grid;
 mod spatial_cache;
+#[cfg(feature = "survivors-visibility")]
+pub mod survivors_mask;
 pub mod trace;
 
 mod anim_rng;
@@ -121,7 +123,9 @@ impl AssetReader for MpqAssetReader {
         );
         let bytes = wasm_fetch(&url).await.map_err(|e| match e {
             WasmFetchError::NotFound => AssetReaderError::NotFound(path.to_path_buf()),
-            WasmFetchError::Other(msg) => AssetReaderError::Io(Arc::new(std::io::Error::other(msg))),
+            WasmFetchError::Other(msg) => {
+                AssetReaderError::Io(Arc::new(std::io::Error::other(msg)))
+            }
         })?;
         Ok(VecReader::new(bytes))
     }

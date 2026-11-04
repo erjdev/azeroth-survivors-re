@@ -1,0 +1,5 @@
+page=cards
+width=1280
+height=720
+scale=1
+abilities=flash_of_light:0,flash_of_light:1,holy_light:1

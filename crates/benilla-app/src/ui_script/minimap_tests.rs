@@ -179,8 +179,23 @@ fn game_time_frame_slides_the_sun_moon_window_on_the_game_clock() {
 /// `<HitRectInsets>` trim the hit rect (`GameTime.xml:15-17`).
 #[test]
 fn hovering_the_indicator_shows_and_live_updates_the_game_time_tooltip() {
+    check_clock_tooltip(true, "21:07", "21:08");
+}
+
+#[test]
+fn the_twelve_hour_game_time_tooltip_also_updates_while_hovered() {
+    check_clock_tooltip(false, "9:07 PM", "9:08 PM");
+}
+
+fn check_clock_tooltip(twenty_four: bool, before: &str, after: &str) {
     let _data = benilla_formats::wow_data_or_skip!();
     let mut s = game_time_session(21, 7);
+    s.run(if twenty_four {
+        "TwentyFourHourTime = 1"
+    } else {
+        "TwentyFourHourTime = nil"
+    })
+    .unwrap();
     s.resolve();
 
     // The middle of the hit rect, inset by l=6, r=0, t=5, b=10.
@@ -196,17 +211,17 @@ fn hovering_the_indicator_shows_and_live_updates_the_game_time_tooltip() {
         s.eval::<bool>("return GameTooltip:IsVisible()").unwrap(),
         "OnEnter owns the tooltip (the Scripts-walker auto-enable capturing at {x},{y})"
     );
-    // The enGB `LocalizeFrames` sets `TwentyFourHourTime = 1` (`Localization.lua:20`): 21:07.
+    // Exercise both stock clock modes independently of the installed locale.
     let text = |s: &UiScript| {
         s.eval::<String>("return GameTooltipTextLeft1:GetText()")
             .unwrap()
     };
-    assert_eq!(text(&s), "21:07");
+    assert_eq!(text(&s), before);
 
     // While owned, `GameTimeFrame_Update` refreshes the tooltip (`GameTime.lua:20-22`).
     s.set_game_time(21, 8);
     s.tick(0.016);
-    assert_eq!(text(&s), "21:08", "the owned tooltip follows the clock");
+    assert_eq!(text(&s), after, "the owned tooltip follows the clock");
 
     // Inside the raw 50x50 rect but in the left inset: not hoverable.
     s.mouse_move(l + 2.0, y);

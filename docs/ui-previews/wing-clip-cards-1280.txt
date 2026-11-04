@@ -1,0 +1,5 @@
+page=cards
+width=1280
+height=720
+abilities=wing_clip:0,wing_clip:3
+profile=selected

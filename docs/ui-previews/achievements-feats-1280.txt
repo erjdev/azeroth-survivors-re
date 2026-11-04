@@ -1,0 +1,4 @@
+page = achievements
+category = feats
+width = 1280
+height = 720

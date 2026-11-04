@@ -1,0 +1,18 @@
+[package]
+name = "survivors-audit"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Read-only Survivors content audit against an explicitly selected MPQ data folder"
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow.workspace = true
+benilla-blp = { path = "../benilla-blp" }
+benilla-formats = { path = "../benilla-formats", default-features = false, features = ["survivors-terrain"] }
+benilla-wmo = { path = "../benilla-wmo" }
+survivors-core = { path = "../survivors-core" }
+
+glam = "0.31"

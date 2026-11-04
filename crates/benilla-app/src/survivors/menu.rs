@@ -4,6 +4,9 @@
 //! The survivors HUD lays out on the 768-unit canvas through `UiScale`, so every glue builder here
 //! takes a unit scale.
 
+mod hero_look;
+pub(super) use hero_look::sync as sync_hero_look;
+
 use bevy::prelude::*;
 use bevy::ui_render::ui_material::MaterialNode;
 
@@ -78,19 +81,31 @@ pub(super) struct RaceFace(u8);
 pub(super) struct PickName;
 
 /// The saved pick, `benilla-config/survivors-pick.txt` (`localStorage` on the page):
-/// `class race sex map`, restored at the menu so a reload keeps the last hero and zone.
+/// `class race sex map hero_id`; legacy four-field picks still load.
 fn pick_path() -> Option<std::path::PathBuf> {
     crate::local_state::home().map(|h| h.join("survivors-pick.txt"))
 }
 
 pub(super) fn save_pick(sel: &Selection) {
-    let (Some(class), Some(&(_, race, sex))) = (sel.class, sel.look.and_then(|i| sel.looks.get(i)))
-    else {
+    let Some(class) = sel.class else {
         return;
     };
+    let (race, sex) = sel
+        .look
+        .and_then(|i| sel.looks.get(i))
+        .map(|&(_, race, sex)| (race, sex))
+        .unwrap_or((0, 0));
+    let pick = survivors_core::selection::SavedPick {
+        class,
+        race,
+        sex,
+        map: sel.map,
+        hero: sel.character,
+    };
     if let Some(path) = pick_path() {
-        let _ =
-            crate::local_state::write_atomic(&path, &format!("{class} {race} {sex} {}", sel.map));
+        if let Err(error) = crate::local_state::write_atomic(&path, &pick.encode()) {
+            warn!("survivors: selection save failed: {error}");
+        }
     }
 }
 
@@ -99,6 +114,7 @@ pub(super) fn save_pick(sel: &Selection) {
 pub(super) fn restore_pick(
     creatures: Option<Res<crate::entities::Creatures>>,
     mut selection: ResMut<Selection>,
+    account: Res<super::account::Account>,
     mut done: Local<bool>,
 ) {
     if *done {
@@ -111,22 +127,22 @@ pub(super) fn restore_pick(
     let all = all_looks(creatures);
     let mut restored = false;
     if let Some(text) = pick_path().and_then(|p| crate::local_state::read_to_string(&p).ok()) {
-        let v: Vec<usize> = text
-            .split_whitespace()
-            .filter_map(|t| t.parse().ok())
-            .collect();
-        if let Ok([class, race, sex, map]) = <[usize; 4]>::try_from(v) {
+        if let Some(pick) = survivors_core::selection::SavedPick::parse(&text) {
             restored = true;
-            if map < data::MAPS.len() {
-                selection.map = map;
-                selection.stage = map;
-                selection.version += 1;
+            selection.map = pick.map;
+            selection.stage = pick.map;
+            selection.version += 1;
+            let race = (pick.race > 0).then_some(pick.race);
+            if let Some(look) = find(&all[pick.class], race, Some(pick.sex))
+                .or_else(|| find(&all[pick.class], None, None))
+            {
+                set(&mut selection, &all, pick.class, look);
             }
-            if class < data::CLASSES.len() {
-                if let Some(l) = find(&all[class], Some(race as u8), Some(sex as u8)) {
-                    set(&mut selection, &all, class, l);
-                }
-            }
+            selection.character = pick.hero.filter(|id| {
+                account
+                    .character(*id)
+                    .is_some_and(|hero| hero.class == pick.class)
+            });
         }
     }
     if !restored {
@@ -197,11 +213,17 @@ pub(super) fn build_menu(
     mut images: ResMut<Assets<Image>>,
     mut add_mats: ResMut<Assets<crate::glue::add_material::AddUiMaterial>>,
     font: Res<HudFont>,
+    strings: Option<Res<crate::glue_strings::GlueStrings>>,
+    globals: Option<Res<super::localization::Strings>>,
 ) {
     let Ok(root) = roots.single() else { return };
     let Some(mut assets) = assets else { return };
     art.ensure_loaded(&mut assets, &mut images, &mut add_mats);
     let f = &font.0;
+    let global_fallback = super::localization::Strings::default();
+    let globals = globals.as_deref().unwrap_or(&global_fallback);
+    let fallback = crate::glue_strings::GlueStrings::default();
+    let strings = strings.as_deref().unwrap_or(&fallback);
     commands.entity(root).insert(MenuBuilt).with_children(|ui| {
         ui.spawn((
             LookScreen,
@@ -222,7 +244,7 @@ pub(super) fn build_menu(
                     abs(1.0, 3.0, 7.0, 256.0, 128.0),
                 ));
             }
-            zone_frame(ui, &art, f);
+            zone_frame(ui, &art, f, globals);
 
             // Renown sits above the name: marks persist on the class, levels do not.
             ui.spawn(Node {
@@ -371,7 +393,7 @@ pub(super) fn build_menu(
                     &art,
                     f,
                     MenuAction::Enter,
-                    "Enter World",
+                    strings.text("ENTER_WORLD", "Enter World"),
                     200.0,
                     60.0,
                     GlueBtnKind::Normal,
@@ -611,7 +633,12 @@ fn tower(ui: &mut ChildSpawnerCommands, art: &GlueArt, f: &Handle<Font>) {
 
 /// The zone list in `CharacterSelectCharacterFrame` (260×642 at TOPRIGHT (-5,-15)), one
 /// character-row per zone, lowest level first.
-fn zone_frame(ui: &mut ChildSpawnerCommands, art: &GlueArt, f: &Handle<Font>) {
+fn zone_frame(
+    ui: &mut ChildSpawnerCommands,
+    art: &GlueArt,
+    f: &Handle<Font>,
+    strings: &super::localization::Strings,
+) {
     let px = Val::Px;
     let mut order: Vec<(usize, u32, u32)> = (0..data::MAPS.len())
         .map(|i| {
@@ -707,11 +734,13 @@ fn zone_frame(ui: &mut ChildSpawnerCommands, art: &GlueArt, f: &Handle<Font>) {
                         f,
                         1.0,
                     );
-                    let levels = if lo == hi {
-                        format!("Level {lo}")
+                    let range = if lo == hi {
+                        lo.to_string()
                     } else {
-                        format!("Level {lo}-{hi}")
+                        format!("{lo}-{hi}")
                     };
+                    let levels =
+                        strings.by_key("UNIT_LEVEL_TEMPLATE", "Level %s", &[range.as_str().into()]);
                     outlined_text(
                         b,
                         abs(1.0, 0.0, 19.0, ROW_W, 14.0),
@@ -797,7 +826,7 @@ pub(super) fn menu_clicks(
                     stash.gear(),
                     account.bonus_picked(class, hero),
                 ) {
-                    run.apply_perks(account.perks);
+                    run.finish_start(account.perks, account.milestones_picked(class, hero));
                     next.set(Phase::Playing);
                 }
             }

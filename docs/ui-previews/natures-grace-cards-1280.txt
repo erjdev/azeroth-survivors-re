@@ -1,0 +1,5 @@
+page=cards
+width=1280
+height=720
+abilities=wrath:0,wrath:4,starfire:4
+profile=selected

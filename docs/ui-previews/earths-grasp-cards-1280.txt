@@ -1,0 +1,7 @@
+page=cards
+width=1280
+height=720
+hero=6
+profile=selected
+scale=1
+abilities=stoneclaw_totem:1,earthbind_totem:1

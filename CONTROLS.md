@@ -23,3 +23,11 @@
 The camera follows the hero, locked top-down by default (laptop-friendly). **C** unlocks it so a
 mouse drag swings and tilts it; **C** again snaps it back. In the menu it slowly orbits the
 preview hero. Your race, gender, class and zone are remembered across reloads.
+
+Controller gameplay: **left stick** moves, **right stick** turns the camera,
+**south / A** jumps, **bumpers or triggers** zoom and **Start** pauses. Keyboard
+movement takes precedence. Release sticks/buttons after resume or device handoff.
+In Options → Controls, **Stick dead zone** ranges from 0–50%, defaults to 25%,
+and saves immediately. Tab/D-pad focuses it; left/right adjusts by one percent.
+Controls defaults restores 25%. Physical-controller feel and Windows validation
+remain pending.

@@ -1,0 +1,6 @@
+page=cards
+width=1280
+height=720
+abilities=sinister_strike:1,blade_flurry:1,kidney_shot:1
+profile=selected
+hero=4

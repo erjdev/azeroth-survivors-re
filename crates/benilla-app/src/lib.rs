@@ -187,6 +187,7 @@ mod ui_world_map;
 mod video;
 mod vplates;
 mod weapon_trail;
+#[path = "ui_webbridge/mod.rs"]
 mod webbridge;
 /// The web build's env-var stand-in (a browser tab has no process environment) — see the
 /// module doc. `pub` because the plan's "Env/config on web" interface names it as

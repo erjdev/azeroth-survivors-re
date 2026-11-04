@@ -1,0 +1,5 @@
+# Select a Rogue; inspect without spending points.
+page=talents
+talent=279
+width=640
+height=720

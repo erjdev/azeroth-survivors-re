@@ -9,7 +9,7 @@ comment may quote a byte address and `docs/MAP.md` may name a file.
 
 ## `1.12-globals.tsv`
 
-The 1.12.1 client's entire global namespace: 21,555 names, `name<TAB>type<TAB>origin`.
+The 1.12.1 client's entire global namespace: 21,556 names, `name<TAB>type<TAB>origin`.
 
 Where it comes from: a dump of `_G` inside the running reference client, which is the surface an
 addon sees (FrameXML-defined globals as well as engine ones), unioned with every global the shipped
@@ -23,7 +23,7 @@ the complete 1.12 shipped-UI corpus:
 | origin | count | meaning |
 |---|---|---|
 | `engine` | 1,104 | the C client provides it; benilla implements these in Rust |
-| `framexml` | 20,427 | the shipped UI defines it; the stock files run off the player's own install (`ui_script::reference_ui`) |
+| `framexml` | 20,428 | the shipped UI defines it; the stock files run off the player's own install (`ui_script::reference_ui`) |
 | `lua` | 24 | Lua 5.0's own runtime |
 
 The `framexml` bulk is UI objects, `ContainerFrame1Item16IconTexture` and its 11,000 siblings,
@@ -34,7 +34,10 @@ shipped Lua is FrameXML's, and hardcoding it in Rust is a category error even wh
 Regenerating: `scripts/gen-reference-globals.py`, whose header carries the method and the traps. It
 needs a 1.12 install, its FrameXML extracted to a folder, and the maintainer's runtime capture of
 the reference client's `_G`, which is not in this repo, so it is a manual regeneration. The table is
-stable: it describes a client that shipped in 2006.
+stable: it describes a client that shipped in 2006. The original capture uses enGB.
+One additional exact symbol, `LOCALE_enUS` (boolean), was verified in the checkout-local
+1.12.1 `patch.MPQ` file `Interface/FrameXML/Localization.lua`; the generator preserves
+that cross-locale fact. Arbitrary `LOCALE_*` globals are not permitted.
 
 Reading it: `scripts/api-coverage.sh` asks a real `UiScript::new()` what benilla exposes and reports
 `have / missing / beyond-1.12`. Two gates hold the line.

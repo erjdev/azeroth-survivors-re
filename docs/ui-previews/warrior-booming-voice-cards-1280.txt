@@ -1,0 +1,6 @@
+page=cards
+width=1280
+height=720
+abilities=battle_shout:0,battle_shout:1
+profile=selected
+hero=1

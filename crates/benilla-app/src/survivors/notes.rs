@@ -37,8 +37,8 @@ pub(super) fn plan_restart(line: &str) -> RestartPlan {
 }
 
 /// Leave and start this same build again.
-pub(super) fn restart_same(exit: &mut MessageWriter<AppExit>) {
-    launch(None, exit);
+pub(super) fn restart_same(exit: &mut MessageWriter<AppExit>) -> &'static str {
+    launch(None, exit)
 }
 
 /// Start the build named in `survivors-update.txt`, when that line is a file on disk.
@@ -46,15 +46,11 @@ pub(super) fn restart_configured(exit: &mut MessageWriter<AppExit>) -> &'static 
     let line = update_line();
     match plan_restart(&line) {
         RestartPlan::RefuseDownload => "A web address is not downloaded",
-        RestartPlan::SameProcess => {
-            launch(None, exit);
-            "Restarting"
-        }
+        RestartPlan::SameProcess => restart_same(exit),
         RestartPlan::NamedFile => {
             let path = PathBuf::from(line.trim());
             if path.is_file() {
-                launch(Some(path), exit);
-                "Starting that build"
+                launch(Some(path), exit)
             } else {
                 "That build is not a file on disk"
             }
@@ -73,28 +69,56 @@ fn update_line() -> String {
         .unwrap_or_default()
 }
 
-fn launch(path: Option<PathBuf>, exit: &mut MessageWriter<AppExit>) {
+fn launch(path: Option<PathBuf>, exit: &mut MessageWriter<AppExit>) -> &'static str {
     #[cfg(target_arch = "wasm32")]
     {
-        let _ = path;
-        if let Some(window) = web_sys::window() {
-            let _ = window.location().reload();
+        let _ = (path, exit);
+        if web_sys::window().is_some_and(|window| window.location().reload().is_ok()) {
+            "Reloading"
+        } else {
+            "Could not reload; the game is still open"
         }
-        let _ = exit;
     }
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let exe = path.or_else(|| std::env::current_exe().ok());
-        if let Some(exe) = exe {
-            let _ = std::process::Command::new(exe).spawn();
+        let Some(exe) = path.or_else(|| std::env::current_exe().ok()) else {
+            return "Could not locate this build; the game is still open";
+        };
+        match std::process::Command::new(&exe).spawn() {
+            Ok(_) => {
+                exit.write(AppExit::Success);
+                "Restarting"
+            }
+            Err(error) => {
+                warn!("Could not launch {}: {error}", exe.display());
+                "Could not launch that build; the game is still open"
+            }
         }
-        exit.write(AppExit::Success);
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn a_failed_launch_does_not_close_the_working_game() {
+        use bevy::ecs::system::SystemState;
+
+        let mut world = World::new();
+        world.init_resource::<Messages<AppExit>>();
+        let mut state = SystemState::<MessageWriter<AppExit>>::new(&mut world);
+        // A regular source file cannot be a directory containing an executable.
+        // This fails without spawning a process or touching a player's installation.
+        let missing = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/Cargo.toml/missing"));
+        let message = launch(Some(missing), &mut state.get_mut(&mut world));
+        assert_eq!(
+            message,
+            "Could not launch that build; the game is still open"
+        );
+        assert!(world.resource::<Messages<AppExit>>().is_empty());
+    }
 
     #[test]
     fn a_web_address_is_not_a_build_to_launch() {

@@ -1,0 +1,7 @@
+# Click an item to open its compact inspector; Back preserves the grid position.
+page=collection
+width=640
+height=480
+scale=1.25
+hero=1
+piece=common:helm

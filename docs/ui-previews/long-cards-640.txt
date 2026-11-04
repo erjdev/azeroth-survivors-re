@@ -1,0 +1,5 @@
+# Baseline stats; no gameplay or account changes.
+page = cards
+width = 640
+height = 720
+abilities = blizzard:7, chain_lightning:6, shadow_word_pain:5

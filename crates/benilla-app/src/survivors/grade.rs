@@ -10,6 +10,7 @@
 use bevy::core_pipeline::core_3d::graph::{Core3d, Node3d};
 use bevy::core_pipeline::fullscreen_material::{FullscreenMaterial, FullscreenMaterialPlugin};
 use bevy::prelude::*;
+
 use bevy::render::extract_component::ExtractComponent;
 use bevy::render::render_graph::{
     InternedRenderLabel, InternedRenderSubGraph, RenderLabel, RenderSubGraph,
@@ -18,6 +19,8 @@ use bevy::render::render_resource::ShaderType;
 use bevy::shader::ShaderRef;
 
 use benilla_world::view::WorldCamera;
+
+type UngradedCamera = (With<WorldCamera>, With<Camera3d>, Without<Grade>);
 
 /// The grade's uniform, on the world camera. `amount` 0 is the identity, and the toggle eases it.
 #[derive(Component, Clone, Copy, ExtractComponent, ShaderType)]
@@ -72,10 +75,7 @@ pub(super) fn plugin(app: &mut App) {
         .add_systems(Update, (attach, toggle, drive).chain());
 }
 
-fn attach(
-    mut commands: Commands,
-    cams: Query<Entity, (With<WorldCamera>, With<Camera3d>, Without<Grade>)>,
-) {
+fn attach(mut commands: Commands, cams: Query<Entity, UngradedCamera>) {
     for e in &cams {
         commands.entity(e).insert(Grade::default());
     }

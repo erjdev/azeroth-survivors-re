@@ -29,9 +29,18 @@ behind a seam the native build already had:
 ```bash
 scripts/web-setup.sh          # once
 scripts/web-build.sh          # → web/dist/ (index.html, wenilla.js, wenilla_bg.wasm, .br/.gz)
+WEB_PROFILE=play scripts/web-build.sh # incremental local iteration, without postprocessing
 cargo run --release -p wenilla-host -- --www web/dist --data /path/to/WoW/Data --upstream 127.0.0.1
 # then open http://127.0.0.1:8090/
 ```
+
+`WEB_PROFILE=play` keeps incremental Rust artifacts under
+`target/wasm32-unknown-unknown/play/`, skips `wasm-opt` and compression, and removes
+stale `.br`/`.gz` siblings so the host serves the current files. Its first build
+still compiles that profile; keep the target cache for later edits. Reload the
+browser after rebuilding. Use the default release build for distribution;
+development output is larger and has not received the optimizer pass.
+`WEB_DEBUG=1` can be combined with either profile to retain symbols.
 
 `wenilla-host` (`crates/wenilla-host`) is the whole server side: static files
 (precompressed), `GET /data/{name}` (`HEAD` too; `GET /data/__index` lists the chain), and

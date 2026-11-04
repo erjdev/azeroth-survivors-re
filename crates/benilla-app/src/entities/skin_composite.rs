@@ -20,12 +20,29 @@ use bevy::tasks::{block_on, futures_lite::future, AsyncComputeTaskPool, Task};
 #[derive(Resource)]
 pub(super) struct SkinSections {
     pub(super) tables: CharSections,
+    #[cfg(feature = "survivors-text")]
+    pub(super) bare_foot_races: std::collections::HashSet<u8>,
     chain: Arc<Mutex<Chain>>,
 }
 
 impl SkinSections {
     pub(super) fn new(tables: CharSections, chain: Arc<Mutex<Chain>>) -> Self {
-        Self { tables, chain }
+        Self {
+            tables,
+            chain,
+            #[cfg(feature = "survivors-text")]
+            bare_foot_races: Default::default(),
+        }
+    }
+
+    #[cfg(feature = "survivors-text")]
+    pub(super) fn with_race_appearance(mut self, chain: &mut Chain) -> Self {
+        self.bare_foot_races = benilla_formats::survivors_appearance::bare_foot_races(chain)
+            .unwrap_or_else(|error| {
+                warn!("race footwear flags unavailable: {error:#}");
+                Default::default()
+            });
+        self
     }
 }
 
@@ -190,7 +207,15 @@ impl SkinComposites {
 /// A plan's work over the shared chain, which each read locks for its archive lookup alone.
 fn work(plan: CompositePlan, chain: Arc<Mutex<Chain>>) -> Work {
     Box::new(move || {
-        plan.run(|path| read_texture(&chain, path))
+        #[cfg(feature = "survivors-text")]
+        let read = |path: &str| {
+            survivors_core::appearance_assets::read(crate::survivors::active(), path, |candidate| {
+                read_texture(&chain, candidate)
+            })
+        };
+        #[cfg(not(feature = "survivors-text"))]
+        let read = |path: &str| read_texture(&chain, path);
+        plan.run(read)
             .inspect_err(|e| warn!("body skin composite failed: {e:#}"))
             .ok()
     })

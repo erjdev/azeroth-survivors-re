@@ -1,0 +1,1429 @@
+enemy,display,template,creature_type,equipment,slot,equipment_entry,source,item_display,item_class,item_subclass,material,inventory_type,sheath,mechanic_immune_mask
+Adult Plainstrider,1220,2956,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Adult Plainstrider,1220,2956,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Adult Plainstrider,1220,2956,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Agathelos the Raging,2450,4422,Beast,0,1,0,no equipment template,0,0,0,0,0,0,614678239
+Agathelos the Raging,2450,4422,Beast,0,2,0,no equipment template,0,0,0,0,0,0,614678239
+Agathelos the Raging,2450,4422,Beast,0,3,0,no equipment template,0,0,0,0,0,0,614678239
+Akubar the Seer,10920,8298,Humanoid,1366,1,14707,NPC item,25278,2,10,2,17,2,0
+Akubar the Seer,10920,8298,Humanoid,1366,2,0,empty slot,0,0,0,0,0,0,0
+Akubar the Seer,10920,8298,Humanoid,1366,3,0,empty slot,0,0,0,0,0,0,0
+Alterac Ram,13340,10990,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Alterac Ram,13340,10990,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Alterac Ram,13340,10990,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Anguished Dead,10256,6426,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Anguished Dead,10256,6426,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Anguished Dead,10256,6426,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Antilus the Soarer,10889,5347,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Antilus the Soarer,10889,5347,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Antilus the Soarer,10889,5347,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Anub'Rekhan,15931,15956,Undead,0,1,0,no equipment template,0,0,0,0,0,0,614678239
+Anub'Rekhan,15931,15956,Undead,0,2,0,no equipment template,0,0,0,0,0,0,614678239
+Anub'Rekhan,15931,15956,Undead,0,3,0,no equipment template,0,0,0,0,0,0,614678239
+Araj the Summoner,10427,1852,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Araj the Summoner,10427,1852,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Araj the Summoner,10427,1852,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Arash-ethis,7569,5349,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Arash-ethis,7569,5349,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Arash-ethis,7569,5349,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Arathor Cavalry Captain,4145,2738,Humanoid,417,1,3432,NPC item,7437,2,6,1,17,2,0
+Arathor Cavalry Captain,4145,2738,Humanoid,417,2,0,empty slot,0,0,0,0,0,0,0
+Arathor Cavalry Captain,4145,2738,Humanoid,417,3,0,empty slot,0,0,0,0,0,0,0
+Arathor Field Marshal,15282,15130,Humanoid,2075,1,13104,NPC item,23617,2,0,1,13,3,0
+Arathor Field Marshal,15282,15130,Humanoid,2075,2,12995,NPC item,23575,4,6,1,14,4,0
+Arathor Field Marshal,15282,15130,Humanoid,2075,3,0,empty slot,0,0,0,0,0,0,0
+Arathor Lumber Champion,4143,2585,Humanoid,105,1,2557,NPC item,2466,2,5,2,17,1,0
+Arathor Lumber Champion,4143,2585,Humanoid,105,2,0,empty slot,0,0,0,0,0,0,0
+Arathor Lumber Champion,4143,2585,Humanoid,105,3,0,empty slot,0,0,0,0,0,0,0
+Arathor Stable Captain,4137,2584,Humanoid,1969,1,2178,NPC item,7482,2,7,1,13,3,0
+Arathor Stable Captain,4137,2584,Humanoid,1969,2,6434,NPC item,18690,4,6,1,14,4,0
+Arathor Stable Captain,4137,2584,Humanoid,1969,3,0,empty slot,0,0,0,0,0,0,0
+Arcanist Doan,5266,6487,Humanoid,96,1,2177,NPC item,1927,2,10,2,17,2,614678239
+Arcanist Doan,5266,6487,Humanoid,96,2,0,empty slot,0,0,0,0,0,0,614678239
+Arcanist Doan,5266,6487,Humanoid,96,3,0,empty slot,0,0,0,0,0,0,614678239
+Armored Scorpid,2487,3126,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Armored Scorpid,2487,3126,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Armored Scorpid,2487,3126,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Baron Charr,14517,14461,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,134144
+Baron Charr,14517,14461,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,134144
+Baron Charr,14517,14461,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,134144
+Barrens Kodo,1453,3236,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Barrens Kodo,1453,3236,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Barrens Kodo,1453,3236,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Battleboar,8869,2966,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Battleboar,8869,2966,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Battleboar,8869,2966,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Bayne,7892,10356,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Bayne,7892,10356,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Bayne,7892,10356,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Bhag'thera,613,728,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Bhag'thera,613,728,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Bhag'thera,613,728,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Bjarn,913,1130,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Bjarn,913,1130,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Bjarn,913,1130,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Black Dragon Whelp,387,441,Dragonkin,0,1,0,no equipment template,0,0,0,0,0,0,0
+Black Dragon Whelp,387,441,Dragonkin,0,2,0,no equipment template,0,0,0,0,0,0,0
+Black Dragon Whelp,387,441,Dragonkin,0,3,0,no equipment template,0,0,0,0,0,0,0
+Black Ravager,741,628,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Black Ravager,741,628,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Black Ravager,741,628,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Black Ravager Mastiff,9562,1258,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Black Ravager Mastiff,9562,1258,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Black Ravager Mastiff,9562,1258,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Black Slayer,10824,5982,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Black Slayer,10824,5982,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Black Slayer,10824,5982,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Black Widow Hatchling,368,930,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Black Widow Hatchling,368,930,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Black Widow Hatchling,368,930,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Blackrock Champion,6044,435,Humanoid,639,1,1899,NPC item,7483,2,7,1,13,3,0
+Blackrock Champion,6044,435,Humanoid,639,2,0,empty slot,0,0,0,0,0,0,0
+Blackrock Champion,6044,435,Humanoid,639,3,0,empty slot,0,0,0,0,0,0,0
+Blackrock Gladiator,6042,4464,Humanoid,149,1,4991,NPC item,5175,2,8,1,17,1,0
+Blackrock Gladiator,6042,4464,Humanoid,149,2,0,empty slot,0,0,0,0,0,0,0
+Blackrock Gladiator,6042,4464,Humanoid,149,3,0,empty slot,0,0,0,0,0,0,0
+Blackrock Hunter,6031,4462,Humanoid,1754,1,2023,NPC item,7481,2,6,1,17,2,0
+Blackrock Hunter,6031,4462,Humanoid,1754,2,0,empty slot,0,0,0,0,0,0,0
+Blackrock Hunter,6031,4462,Humanoid,1754,3,5870,NPC item,22671,2,16,1,25,0,0
+Blackrock Summoner,6030,4463,Humanoid,85,1,1908,NPC item,1600,2,10,2,17,2,0
+Blackrock Summoner,6030,4463,Humanoid,85,2,0,empty slot,0,0,0,0,0,0,0
+Blackrock Summoner,6030,4463,Humanoid,85,3,0,empty slot,0,0,0,0,0,0,0
+Blackrock Tracker,6040,615,Humanoid,619,1,2023,NPC item,7481,2,6,1,17,2,0
+Blackrock Tracker,6040,615,Humanoid,619,2,0,empty slot,0,0,0,0,0,0,0
+Blackrock Tracker,6040,615,Humanoid,619,3,0,empty slot,0,0,0,0,0,0,0
+Blazerunner,1204,9376,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Blazerunner,1204,9376,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Blazerunner,1204,9376,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Blighted Zombie,612,4475,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Blighted Zombie,612,4475,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Blighted Zombie,612,4475,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Bloodmage Thalnos,11396,4543,Undead,96,1,2177,NPC item,1927,2,10,2,17,2,614678239
+Bloodmage Thalnos,11396,4543,Undead,96,2,0,empty slot,0,0,0,0,0,0,614678239
+Bloodmage Thalnos,11396,4543,Undead,96,3,0,empty slot,0,0,0,0,0,0,614678239
+Bloodpetal Flayer,11635,6510,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Bloodpetal Flayer,11635,6510,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Bloodpetal Flayer,11635,6510,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Bloodpetal Lasher,11634,6509,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Bloodpetal Lasher,11634,6509,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Bloodpetal Lasher,11634,6509,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Bloodsail Raider,793,1561,Humanoid,412,1,2184,NPC item,7434,2,15,1,13,3,0
+Bloodsail Raider,793,1561,Humanoid,412,2,2184,NPC item,7434,2,15,1,13,3,0
+Bloodsail Raider,793,1561,Humanoid,412,3,0,empty slot,0,0,0,0,0,0,0
+Bloodsail Sea Dog,796,1565,Humanoid,396,1,2184,NPC item,7434,2,15,1,13,3,0
+Bloodsail Sea Dog,796,1565,Humanoid,396,2,0,empty slot,0,0,0,0,0,0,0
+Bloodsail Sea Dog,796,1565,Humanoid,396,3,0,empty slot,0,0,0,0,0,0,0
+Bloodsail Warlock,4461,1564,Humanoid,838,1,1907,NPC item,10654,2,10,2,17,2,0
+Bloodsail Warlock,4461,1564,Humanoid,838,2,0,empty slot,0,0,0,0,0,0,0
+Bloodsail Warlock,4461,1564,Humanoid,838,3,0,empty slot,0,0,0,0,0,0,0
+Bloodtalon Taillasher,1960,3122,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Bloodtalon Taillasher,1960,3122,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Bloodtalon Taillasher,1960,3122,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Boulderfist Lord,11549,2571,Humanoid,136,1,5301,NPC item,3879,2,5,2,17,1,0
+Boulderfist Lord,11549,2571,Humanoid,136,2,0,empty slot,0,0,0,0,0,0,0
+Boulderfist Lord,11549,2571,Humanoid,136,3,0,empty slot,0,0,0,0,0,0,0
+Boulderfist Ogre,1122,2562,Humanoid,381,1,2695,NPC item,7432,2,4,2,13,3,0
+Boulderfist Ogre,1122,2562,Humanoid,381,2,0,empty slot,0,0,0,0,0,0,0
+Boulderfist Ogre,1122,2562,Humanoid,381,3,0,empty slot,0,0,0,0,0,0,0
+Brainwashed Noble,3267,596,Humanoid,145,1,5304,NPC item,5098,2,10,2,17,2,0
+Brainwashed Noble,3267,596,Humanoid,145,2,0,empty slot,0,0,0,0,0,0,0
+Brainwashed Noble,3267,596,Humanoid,145,3,0,empty slot,0,0,0,0,0,0,0
+Bristleback Geomancer,6091,3263,Humanoid,143,1,5276,NPC item,5010,2,10,2,17,2,0
+Bristleback Geomancer,6091,3263,Humanoid,143,2,0,empty slot,0,0,0,0,0,0,0
+Bristleback Geomancer,6091,3263,Humanoid,143,3,0,empty slot,0,0,0,0,0,0,0
+Burning Blade Cultist,4194,3199,Humanoid,838,1,1907,NPC item,10654,2,10,2,17,2,16
+Burning Blade Cultist,4194,3199,Humanoid,838,2,0,empty slot,0,0,0,0,0,0,16
+Burning Blade Cultist,4194,3199,Humanoid,838,3,0,empty slot,0,0,0,0,0,0,16
+Burning Blade Neophyte,4186,3196,Humanoid,575,1,2809,NPC item,7476,2,4,2,13,3,0
+Burning Blade Neophyte,4186,3196,Humanoid,575,2,0,empty slot,0,0,0,0,0,0,0
+Burning Blade Neophyte,4186,3196,Humanoid,575,3,0,empty slot,0,0,0,0,0,0,0
+Cannibal Ghoul,10626,8530,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Cannibal Ghoul,10626,8530,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Cannibal Ghoul,10626,8530,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Captain Balinda Stonehearth,12823,11949,Humanoid,1364,1,14618,NPC item,25197,2,10,2,17,2,617299803
+Captain Balinda Stonehearth,12823,11949,Humanoid,1364,2,0,empty slot,0,0,0,0,0,0,617299803
+Captain Balinda Stonehearth,12823,11949,Humanoid,1364,3,0,empty slot,0,0,0,0,0,0,617299803
+Captain Galvangar,11895,11947,Humanoid,1389,1,14879,NPC item,25496,2,6,1,17,2,617299803
+Captain Galvangar,11895,11947,Humanoid,1389,2,0,empty slot,0,0,0,0,0,0,617299803
+Captain Galvangar,11895,11947,Humanoid,1389,3,0,empty slot,0,0,0,0,0,0,617299803
+Carrion Devourer,7900,8605,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Carrion Devourer,7900,8605,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Carrion Devourer,7900,8605,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Clattering Scorpid,2486,3125,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Clattering Scorpid,2486,3125,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Clattering Scorpid,2486,3125,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Clutchmother Zavas,11084,6582,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Clutchmother Zavas,11084,6582,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Clutchmother Zavas,11084,6582,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Cold Eye Basilisk,8797,690,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Cold Eye Basilisk,8797,690,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Cold Eye Basilisk,8797,690,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Commander Louis Philips,13465,13154,Humanoid,1276,1,13627,NPC item,24366,2,7,1,13,3,0
+Commander Louis Philips,13465,13154,Humanoid,1276,2,0,empty slot,0,0,0,0,0,0,0
+Commander Louis Philips,13465,13154,Humanoid,1276,3,2551,NPC item,10671,2,18,1,26,0,0
+Commander Malgor,13463,13152,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Commander Malgor,13463,13152,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Commander Malgor,13463,13152,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Coyote,643,834,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Coyote,643,834,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Coyote,643,834,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Crag Boar,607,1125,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Crag Boar,607,1125,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Crag Boar,607,1125,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Crypt Fiend,11178,8556,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Crypt Fiend,11178,8556,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Crypt Fiend,11178,8556,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Crypt Walker,11178,8556,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Crypt Walker,11178,8556,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Crypt Walker,11178,8556,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Cursed Darkhound,9020,1548,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Cursed Darkhound,9020,1548,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Cursed Darkhound,9020,1548,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Cursed Mage,11397,8524,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Cursed Mage,11397,8524,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Cursed Mage,11397,8524,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Dabyrie Militia,4418,2581,Humanoid,708,1,1896,NPC item,7487,2,7,1,13,3,0
+Dabyrie Militia,4418,2581,Humanoid,708,2,2053,NPC item,1757,4,6,1,14,4,0
+Dabyrie Militia,4418,2581,Humanoid,708,3,0,empty slot,0,0,0,0,0,0,0
+Darkeye Bonecaster,11398,1522,Undead,838,1,1907,NPC item,10654,2,10,2,17,2,8388624
+Darkeye Bonecaster,11398,1522,Undead,838,2,0,empty slot,0,0,0,0,0,0,8388624
+Darkeye Bonecaster,11398,1522,Undead,838,3,0,empty slot,0,0,0,0,0,0,8388624
+Death Cultist,10391,8547,Humanoid,155,1,2014,NPC item,5176,2,8,1,17,1,0
+Death Cultist,10391,8547,Humanoid,155,2,0,empty slot,0,0,0,0,0,0,0
+Death Cultist,10391,8547,Humanoid,155,3,0,empty slot,0,0,0,0,0,0,0
+Death Flayer,2491,5823,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Death Flayer,2491,5823,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Death Flayer,2491,5823,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Death Lord,10729,16861,Undead,1268,1,13623,NPC item,24342,2,8,1,17,1,8388624
+Death Lord,10729,16861,Undead,1268,2,0,empty slot,0,0,0,0,0,0,8388624
+Death Lord,10729,16861,Undead,1268,3,0,empty slot,0,0,0,0,0,0,8388624
+Deathclasp,15327,15196,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Deathclasp,15327,15196,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Deathclasp,15327,15196,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Deathknight,16508,16146,Undead,142,1,0,empty slot,0,0,0,0,0,0,8388624
+Deathknight,16508,16146,Undead,142,2,6400,NPC item,11559,4,6,1,14,4,8388624
+Deathknight,16508,16146,Undead,142,3,0,empty slot,0,0,0,0,0,0,8388624
+Decrepit Darkhound,9021,1547,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Decrepit Darkhound,9021,1547,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Decrepit Darkhound,9021,1547,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Defias Bandit,2357,116,Humanoid,694,1,1896,NPC item,7487,2,7,1,13,3,0
+Defias Bandit,2357,116,Humanoid,694,2,0,empty slot,0,0,0,0,0,0,0
+Defias Bandit,2357,116,Humanoid,694,3,0,empty slot,0,0,0,0,0,0,0
+Defias Cutpurse,2361,94,Humanoid,396,1,2184,NPC item,7434,2,15,1,13,3,0
+Defias Cutpurse,2361,94,Humanoid,396,2,0,empty slot,0,0,0,0,0,0,0
+Defias Cutpurse,2361,94,Humanoid,396,3,0,empty slot,0,0,0,0,0,0,0
+Defias Highwayman,2342,122,Humanoid,414,1,2184,NPC item,7434,2,15,1,13,3,0
+Defias Highwayman,2342,122,Humanoid,414,2,1895,NPC item,7488,2,7,1,13,3,0
+Defias Highwayman,2342,122,Humanoid,414,3,0,empty slot,0,0,0,0,0,0,0
+Defias Rogue Wizard,2359,474,Humanoid,838,1,1907,NPC item,10654,2,10,2,17,2,0
+Defias Rogue Wizard,2359,474,Humanoid,838,2,0,empty slot,0,0,0,0,0,0,0
+Defias Rogue Wizard,2359,474,Humanoid,838,3,0,empty slot,0,0,0,0,0,0,0
+Defias Smuggler,4418,95,Humanoid,1764,1,2819,NPC item,6443,2,15,1,13,3,0
+Defias Smuggler,4418,95,Humanoid,1764,2,0,empty slot,0,0,0,0,0,0,0
+Defias Smuggler,4418,95,Humanoid,1764,3,2946,NPC item,16752,2,16,1,25,0,0
+Defias Thug,5035,38,Humanoid,694,1,1896,NPC item,7487,2,7,1,13,3,0
+Defias Thug,5035,38,Humanoid,694,2,0,empty slot,0,0,0,0,0,0,0
+Defias Thug,5035,38,Humanoid,694,3,0,empty slot,0,0,0,0,0,0,0
+Defias Trapper,2331,504,Humanoid,192,1,3848,NPC item,6434,2,15,1,13,3,0
+Defias Trapper,2331,504,Humanoid,192,2,0,empty slot,0,0,0,0,0,0,0
+Defias Trapper,2331,504,Humanoid,192,3,0,empty slot,0,0,0,0,0,0,0
+Defiler Basin Warmaster,15284,15128,Humanoid,2074,1,14874,NPC item,25441,2,0,1,13,3,0
+Defiler Basin Warmaster,15284,15128,Humanoid,2074,2,12893,NPC item,23387,4,6,1,14,4,0
+Defiler Basin Warmaster,15284,15128,Humanoid,2074,3,0,empty slot,0,0,0,0,0,0,0
+Defiler Blacksmith Champion,15284,15128,Humanoid,2074,1,14874,NPC item,25441,2,0,1,13,3,0
+Defiler Blacksmith Champion,15284,15128,Humanoid,2074,2,12893,NPC item,23387,4,6,1,14,4,0
+Defiler Blacksmith Champion,15284,15128,Humanoid,2074,3,0,empty slot,0,0,0,0,0,0,0
+Defiler Elite,15284,15128,Humanoid,2074,1,14874,NPC item,25441,2,0,1,13,3,0
+Defiler Elite,15284,15128,Humanoid,2074,2,12893,NPC item,23387,4,6,1,14,4,0
+Defiler Elite,15284,15128,Humanoid,2074,3,0,empty slot,0,0,0,0,0,0,0
+Defiler Farm Raider,4032,2619,Humanoid,920,1,10612,NPC item,19550,2,0,1,13,3,0
+Defiler Farm Raider,4032,2619,Humanoid,920,2,0,empty slot,0,0,0,0,0,0,0
+Defiler Farm Raider,4032,2619,Humanoid,920,3,0,empty slot,0,0,0,0,0,0,0
+Defiler Mine Overseer,4034,2621,Humanoid,1977,1,10612,NPC item,19550,2,0,1,13,3,0
+Defiler Mine Overseer,4034,2621,Humanoid,1977,2,12453,NPC item,22637,4,6,1,14,4,0
+Defiler Mine Overseer,4034,2621,Humanoid,1977,3,0,empty slot,0,0,0,0,0,0,0
+Defiler Siege Commander,15286,15128,Humanoid,2074,1,14874,NPC item,25441,2,0,1,13,3,0
+Defiler Siege Commander,15286,15128,Humanoid,2074,2,12893,NPC item,23387,4,6,1,14,4,0
+Defiler Siege Commander,15286,15128,Humanoid,2074,3,0,empty slot,0,0,0,0,0,0,0
+Devilsaur,5239,6498,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Devilsaur,5239,6498,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Devilsaur,5239,6498,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Diamond Head,1817,5345,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Diamond Head,1817,5345,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Diamond Head,1817,5345,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Diemetradon,8511,9163,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Diemetradon,8511,9163,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Diemetradon,8511,9163,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Dire Condor,490,428,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Dire Condor,490,428,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Dire Condor,490,428,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Dire Mottled Boar,381,3099,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Dire Mottled Boar,381,3099,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Dire Mottled Boar,381,3099,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Doomguard Commander,4426,12396,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Doomguard Commander,4426,12396,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Doomguard Commander,4426,12396,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Dreadmaul Mauler,14401,5977,Humanoid,586,1,3361,NPC item,7477,2,4,2,13,3,0
+Dreadmaul Mauler,14401,5977,Humanoid,586,2,0,empty slot,0,0,0,0,0,0,0
+Dreadmaul Mauler,14401,5977,Humanoid,586,3,0,empty slot,0,0,0,0,0,0,0
+Dredge Striker,15386,11740,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Dredge Striker,15386,11740,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Dredge Striker,15386,11740,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Drek'Thar,11894,11946,Humanoid,994,1,11019,NPC item,20502,2,7,1,13,3,617299803
+Drek'Thar,11894,11946,Humanoid,994,2,13718,NPC item,24478,2,7,1,13,3,617299803
+Drek'Thar,11894,11946,Humanoid,994,3,0,empty slot,0,0,0,0,0,0,617299803
+Drywhisker Kobold,373,2572,Humanoid,384,1,2711,NPC item,7433,2,15,1,13,3,0
+Drywhisker Kobold,373,2572,Humanoid,384,2,0,empty slot,0,0,0,0,0,0,0
+Drywhisker Kobold,373,2572,Humanoid,384,3,0,empty slot,0,0,0,0,0,0,0
+Duskstalker,11453,14430,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Duskstalker,11453,14430,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Duskstalker,11453,14430,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Dust Stormer,8715,11744,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Dust Stormer,8715,11744,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Dust Stormer,8715,11744,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Dustwind Harpy,3012,3115,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Dustwind Harpy,3012,3115,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Dustwind Harpy,3012,3115,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Dustwind Pillager,6814,3116,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Dustwind Pillager,6814,3116,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Dustwind Pillager,6814,3116,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Echeyakee,1934,3475,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Echeyakee,1934,3475,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Echeyakee,1934,3475,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Edan the Howler,931,1137,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Edan the Howler,931,1137,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Edan the Howler,931,1137,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Elder Crag Boar,744,1127,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Elder Crag Boar,744,1127,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Elder Crag Boar,744,1127,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Elder Diemetradon,8512,9164,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Elder Diemetradon,8512,9164,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Elder Diemetradon,8512,9164,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Elder Mistvale Gorilla,838,1557,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Elder Mistvale Gorilla,838,1557,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Elder Mistvale Gorilla,838,1557,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Elder Mottled Boar,193,3100,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Elder Mottled Boar,193,3100,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Elder Mottled Boar,193,3100,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Elder Plainstrider,1221,2957,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Elder Plainstrider,1221,2957,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Elder Plainstrider,1221,2957,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Elder Thunder Lizard,2764,4727,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Elder Thunder Lizard,2764,4727,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Elder Thunder Lizard,2764,4727,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Emeriss,15366,14889,Dragonkin,0,1,0,no equipment template,0,0,0,0,0,0,617299803
+Emeriss,15366,14889,Dragonkin,0,2,0,no equipment template,0,0,0,0,0,0,617299803
+Emeriss,15366,14889,Dragonkin,0,3,0,no equipment template,0,0,0,0,0,0,617299803
+Farmer Solliden,3535,1936,Humanoid,523,1,1485,NPC item,7464,2,6,1,17,1,0
+Farmer Solliden,3535,1936,Humanoid,523,2,0,empty slot,0,0,0,0,0,0,0
+Farmer Solliden,3535,1936,Humanoid,523,3,0,empty slot,0,0,0,0,0,0,0
+Fedfennel,175,472,Humanoid,291,1,1909,NPC item,7426,2,0,1,13,3,0
+Fedfennel,175,472,Humanoid,291,2,0,empty slot,0,0,0,0,0,0,0
+Fedfennel,175,472,Humanoid,291,3,0,empty slot,0,0,0,0,0,0,0
+Felbeast,7949,8675,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Felbeast,7949,8675,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Felbeast,7949,8675,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Felguard Elite,7970,8717,Demon,639,1,1899,NPC item,7483,2,7,1,13,3,0
+Felguard Elite,7970,8717,Demon,639,2,0,empty slot,0,0,0,0,0,0,0
+Felguard Elite,7970,8717,Demon,639,3,0,empty slot,0,0,0,0,0,0,0
+Felguard Sentry,9017,6011,Demon,117,1,5491,NPC item,2839,2,5,2,17,1,0
+Felguard Sentry,9017,6011,Demon,117,2,0,empty slot,0,0,0,0,0,0,0
+Felguard Sentry,9017,6011,Demon,117,3,0,empty slot,0,0,0,0,0,0,0
+Felhound,1913,6010,Demon,96,1,2177,NPC item,1927,2,10,2,17,2,0
+Felhound,1913,6010,Demon,96,2,0,empty slot,0,0,0,0,0,0,0
+Felhound,1913,6010,Demon,96,3,0,empty slot,0,0,0,0,0,0,0
+Fellicent's Shade,5430,10358,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Fellicent's Shade,5430,10358,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Fellicent's Shade,5430,10358,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Felstalker,850,3102,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Felstalker,850,3102,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Felstalker,850,3102,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Fenros,11179,507,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Fenros,11179,507,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Fenros,11179,507,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Feral Scar Yeti,3207,5292,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Feral Scar Yeti,3207,5292,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Feral Scar Yeti,3207,5292,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Fetid Corpse,559,1270,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Fetid Corpse,559,1270,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Fetid Corpse,559,1270,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Flatland Cougar,1059,3035,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Flatland Cougar,1059,3035,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Flatland Cougar,1059,3035,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Fleeting Plainstrider,1284,3246,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Fleeting Plainstrider,1284,3246,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Fleeting Plainstrider,1284,3246,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Flesh Golem,7864,1805,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Flesh Golem,7864,1805,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Flesh Golem,7864,1805,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Fleshripper,2305,1109,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Fleshripper,2305,1109,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Fleshripper,2305,1109,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Forest Spider,382,30,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Forest Spider,382,30,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Forest Spider,382,30,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Frayfeather Hippogryph,3210,5300,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Frayfeather Hippogryph,3210,5300,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Frayfeather Hippogryph,3210,5300,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Frenzied Plaguehound,9022,8598,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Frenzied Plaguehound,9022,8598,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Frenzied Plaguehound,9022,8598,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Frenzied Pterrordax,8412,9167,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Frenzied Pterrordax,8412,9167,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Frenzied Pterrordax,8412,9167,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Frostmane Seer,5610,1397,Humanoid,85,1,1908,NPC item,1600,2,10,2,17,2,0
+Frostmane Seer,5610,1397,Humanoid,85,2,0,empty slot,0,0,0,0,0,0,0
+Frostmane Seer,5610,1397,Humanoid,85,3,0,empty slot,0,0,0,0,0,0,0
+Frostmane Snowstrider,5607,1121,Humanoid,344,1,1719,NPC item,7429,2,0,1,21,3,0
+Frostmane Snowstrider,5607,1121,Humanoid,344,2,0,empty slot,0,0,0,0,0,0,0
+Frostmane Snowstrider,5607,1121,Humanoid,344,3,0,empty slot,0,0,0,0,0,0,0
+Frostwolf,10278,10981,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Frostwolf,10278,10981,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Frostwolf,10278,10981,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Frostwolf Bowman,13398,13359,Humanoid,6,1,0,empty slot,0,0,0,0,0,0,0
+Frostwolf Bowman,13398,13359,Humanoid,6,2,0,empty slot,0,0,0,0,0,0,0
+Frostwolf Bowman,13398,13359,Humanoid,6,3,5261,NPC item,6234,2,2,2,15,0,0
+Frostwolf Guardian,12165,12053,Humanoid,1296,1,13718,NPC item,24478,2,7,1,13,3,0
+Frostwolf Guardian,12165,12053,Humanoid,1296,2,13629,NPC item,24368,4,6,1,14,4,0
+Frostwolf Guardian,12165,12053,Humanoid,1296,3,5261,NPC item,6234,2,2,2,15,0,0
+Geolord Mottle,6113,5826,Humanoid,838,1,1907,NPC item,10654,2,10,2,17,2,0
+Geolord Mottle,6113,5826,Humanoid,838,2,0,empty slot,0,0,0,0,0,0,0
+Geolord Mottle,6113,5826,Humanoid,838,3,0,empty slot,0,0,0,0,0,0,0
+Ghost Howl,720,3056,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Ghost Howl,720,3056,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Ghost Howl,720,3056,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Gluth,16064,15932,Undead,0,1,0,no equipment template,0,0,0,0,0,0,614678239
+Gluth,16064,15932,Undead,0,2,0,no equipment template,0,0,0,0,0,0,614678239
+Gluth,16064,15932,Undead,0,3,0,no equipment template,0,0,0,0,0,0,614678239
+Glutinous Ooze,1146,6559,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Glutinous Ooze,1146,6559,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Glutinous Ooze,1146,6559,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Gnarlpine Ambusher,3024,2152,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Gnarlpine Ambusher,3024,2152,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Gnarlpine Ambusher,3024,2152,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Gnarlpine Augur,3024,2011,Humanoid,365,1,2827,NPC item,7431,2,0,1,13,3,0
+Gnarlpine Augur,3024,2011,Humanoid,365,2,0,empty slot,0,0,0,0,0,0,0
+Gnarlpine Augur,3024,2011,Humanoid,365,3,0,empty slot,0,0,0,0,0,0,0
+Gnarlpine Defender,6801,2010,Humanoid,466,1,3350,NPC item,7444,2,4,2,13,3,0
+Gnarlpine Defender,6801,2010,Humanoid,466,2,0,empty slot,0,0,0,0,0,0,0
+Gnarlpine Defender,6801,2010,Humanoid,466,3,0,empty slot,0,0,0,0,0,0,0
+Gnarlpine Gardener,6799,2007,Humanoid,766,1,1195,NPC item,7495,2,5,2,17,1,0
+Gnarlpine Gardener,6799,2007,Humanoid,766,2,0,empty slot,0,0,0,0,0,0,0
+Gnarlpine Gardener,6799,2007,Humanoid,766,3,0,empty slot,0,0,0,0,0,0,0
+Gnarlpine Shaman,897,2009,Humanoid,838,1,1907,NPC item,10654,2,10,2,17,2,0
+Gnarlpine Shaman,897,2009,Humanoid,838,2,0,empty slot,0,0,0,0,0,0,0
+Gnarlpine Shaman,897,2009,Humanoid,838,3,0,empty slot,0,0,0,0,0,0,0
+Gnarlpine Warrior,6800,2008,Humanoid,446,1,1901,NPC item,7440,2,4,2,13,3,0
+Gnarlpine Warrior,6800,2008,Humanoid,446,2,0,empty slot,0,0,0,0,0,0,0
+Gnarlpine Warrior,6800,2008,Humanoid,446,3,0,empty slot,0,0,0,0,0,0,0
+Gordunni Brute,11554,5232,Humanoid,136,1,5301,NPC item,3879,2,5,2,17,1,0
+Gordunni Brute,11554,5232,Humanoid,136,2,0,empty slot,0,0,0,0,0,0,0
+Gordunni Brute,11554,5232,Humanoid,136,3,0,empty slot,0,0,0,0,0,0,0
+Gordunni Mauler,11557,5234,Humanoid,61,1,1903,NPC item,7439,2,4,2,13,3,0
+Gordunni Mauler,11557,5234,Humanoid,61,2,2809,NPC item,7476,2,4,2,13,3,0
+Gordunni Mauler,11557,5234,Humanoid,61,3,0,empty slot,0,0,0,0,0,0,0
+Gordunni Ogre,597,5229,Humanoid,575,1,2809,NPC item,7476,2,4,2,13,3,0
+Gordunni Ogre,597,5229,Humanoid,575,2,0,empty slot,0,0,0,0,0,0,0
+Gordunni Ogre,597,5229,Humanoid,575,3,0,empty slot,0,0,0,0,0,0,0
+Gordunni Warlock,11560,5240,Humanoid,110,1,2559,NPC item,2469,2,10,2,17,2,0
+Gordunni Warlock,11560,5240,Humanoid,110,2,0,empty slot,0,0,0,0,0,0,0
+Gordunni Warlock,11560,5240,Humanoid,110,3,0,empty slot,0,0,0,0,0,0,0
+Gorefang,11413,12431,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Gorefang,11413,12431,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Gorefang,11413,12431,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Goretusk,3027,157,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Goretusk,3027,157,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Goretusk,3027,157,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Gorishi Wasp,11090,6551,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Gorishi Wasp,11090,6551,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Gorishi Wasp,11090,6551,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Grand Widow Faerlina,15940,15953,Humanoid,1494,1,22805,NPC item,35247,2,7,1,13,3,614678239
+Grand Widow Faerlina,15940,15953,Humanoid,1494,2,0,empty slot,0,0,0,0,0,0,614678239
+Grand Widow Faerlina,15940,15953,Humanoid,1494,3,0,empty slot,0,0,0,0,0,0,614678239
+Gray Forest Wolf,380,1922,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Gray Forest Wolf,380,1922,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Gray Forest Wolf,380,1922,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Great Father Arctikus,5625,1260,Humanoid,725,1,1983,NPC item,7490,2,8,1,17,1,0
+Great Father Arctikus,5625,1260,Humanoid,725,2,0,empty slot,0,0,0,0,0,0,0
+Great Father Arctikus,5625,1260,Humanoid,725,3,0,empty slot,0,0,0,0,0,0,0
+Great Goretusk,3035,547,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Great Goretusk,3035,547,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Great Goretusk,3035,547,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Greater Barrens Kodo,1232,3235,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Greater Barrens Kodo,1232,3235,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Greater Barrens Kodo,1232,3235,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Greater Duskbat,4734,1553,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Greater Duskbat,4734,1553,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Greater Duskbat,4734,1553,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Greater Tarantula,520,505,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Greater Tarantula,520,505,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Greater Tarantula,520,505,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Greater Thunderhawk,1974,3249,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Greater Thunderhawk,1974,3249,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Greater Thunderhawk,1974,3249,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Green Recluse,2541,569,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Green Recluse,2541,569,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Green Recluse,2541,569,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Grell,6806,1988,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Grell,6806,1988,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Grell,6806,1988,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Grellkin,3023,1989,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Grellkin,3023,1989,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Grellkin,3023,1989,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Gretheer,1104,14472,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Gretheer,1104,14472,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Gretheer,1104,14472,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Grubthor,14523,14477,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Grubthor,14523,14477,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Grubthor,14523,14477,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Gruff,10932,6583,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Gruff,10932,6583,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Gruff,10932,6583,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Gruff Swiftbite,175,100,Humanoid,344,1,1719,NPC item,7429,2,0,1,21,3,0
+Gruff Swiftbite,175,100,Humanoid,344,2,0,empty slot,0,0,0,0,0,0,0
+Gruff Swiftbite,175,100,Humanoid,344,3,0,empty slot,0,0,0,0,0,0,0
+Hammerfall Elite,4034,15136,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hammerfall Elite,4034,15136,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hammerfall Elite,4034,15136,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hammerfall Grunt,4032,2619,Humanoid,920,1,10612,NPC item,19550,2,0,1,13,3,0
+Hammerfall Grunt,4032,2619,Humanoid,920,2,0,empty slot,0,0,0,0,0,0,0
+Hammerfall Grunt,4032,2619,Humanoid,920,3,0,empty slot,0,0,0,0,0,0,0
+Hammerfall Guardian,4034,2621,Humanoid,1977,1,10612,NPC item,19550,2,0,1,13,3,0
+Hammerfall Guardian,4034,2621,Humanoid,1977,2,12453,NPC item,22637,4,6,1,14,4,0
+Hammerfall Guardian,4034,2621,Humanoid,1977,3,0,empty slot,0,0,0,0,0,0,0
+Hammerfall Peon,4030,2618,Humanoid,319,1,1905,NPC item,7428,2,0,1,13,3,0
+Hammerfall Peon,4030,2618,Humanoid,319,2,0,empty slot,0,0,0,0,0,0,0
+Hammerfall Peon,4030,2618,Humanoid,319,3,0,empty slot,0,0,0,0,0,0,0
+Harvest Golem,367,36,Mechanical,0,1,0,no equipment template,0,0,0,0,0,0,16384
+Harvest Golem,367,36,Mechanical,0,2,0,no equipment template,0,0,0,0,0,0,16384
+Harvest Golem,367,36,Mechanical,0,3,0,no equipment template,0,0,0,0,0,0,16384
+Harvest Watcher,378,114,Mechanical,0,1,0,no equipment template,0,0,0,0,0,0,16384
+Harvest Watcher,378,114,Mechanical,0,2,0,no equipment template,0,0,0,0,0,0,16384
+Harvest Watcher,378,114,Mechanical,0,3,0,no equipment template,0,0,0,0,0,0,16384
+Hate Shrieker,10751,8541,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Hate Shrieker,10751,8541,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Hate Shrieker,10751,8541,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Haunting Phantasm,4629,6427,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Haunting Phantasm,4629,6427,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Haunting Phantasm,4629,6427,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Hecklefang Hyena,2710,4127,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hecklefang Hyena,2710,4127,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hecklefang Hyena,2710,4127,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hecklefang Stalker,2712,4128,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hecklefang Stalker,2712,4128,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hecklefang Stalker,2712,4128,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hederine Manastalker,6172,7462,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hederine Manastalker,6172,7462,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hederine Manastalker,6172,7462,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Herod,2041,3975,Humanoid,1695,1,7612,NPC item,15576,2,1,1,17,1,614678239
+Herod,2041,3975,Humanoid,1695,2,0,empty slot,0,0,0,0,0,0,614678239
+Herod,2041,3975,Humanoid,1695,3,0,empty slot,0,0,0,0,0,0,614678239
+Hezrul Bloodmark,9448,3396,Humanoid,730,1,1900,NPC item,7492,2,7,1,13,3,0
+Hezrul Bloodmark,9448,3396,Humanoid,730,2,0,empty slot,0,0,0,0,0,0,0
+Hezrul Bloodmark,9448,3396,Humanoid,730,3,0,empty slot,0,0,0,0,0,0,0
+High Inquisitor Fairbanks,2605,4542,Undead,422,1,2182,NPC item,7438,2,4,2,13,3,614678239
+High Inquisitor Fairbanks,2605,4542,Undead,422,2,0,empty slot,0,0,0,0,0,0,614678239
+High Inquisitor Fairbanks,2605,4542,Undead,422,3,0,empty slot,0,0,0,0,0,0,614678239
+High Inquisitor Whitemane,2043,3977,Humanoid,1697,1,7826,NPC item,15990,2,10,2,17,2,614678239
+High Inquisitor Whitemane,2043,3977,Humanoid,1697,2,0,empty slot,0,0,0,0,0,0,614678239
+High Inquisitor Whitemane,2043,3977,Humanoid,1697,3,0,empty slot,0,0,0,0,0,0,614678239
+Highland Strider,3027,2559,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Highland Strider,3027,2559,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Highland Strider,3027,2559,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hive'Ashi Defender,12153,11722,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hive'Ashi Defender,12153,11722,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hive'Ashi Defender,12153,11722,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hive'Ashi Stinger,12149,11698,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hive'Ashi Stinger,12149,11698,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hive'Ashi Stinger,12149,11698,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hive'Ashi Worker,12151,11721,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hive'Ashi Worker,12151,11721,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hive'Ashi Worker,12151,11721,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Ambusher,11106,11730,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Ambusher,11106,11730,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Ambusher,11106,11730,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Hive Lord,12155,11734,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Hive Lord,12155,11734,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Hive Lord,12155,11734,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Slavemaker,12154,11733,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Slavemaker,12154,11733,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Slavemaker,12154,11733,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Spitfire,9229,11732,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Spitfire,9229,11732,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hive'Regal Spitfire,9229,11732,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hive'Zora Hive Sister,12160,11729,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hive'Zora Hive Sister,12160,11729,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hive'Zora Hive Sister,12160,11729,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hive'Zora Reaver,11085,11728,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hive'Zora Reaver,11085,11728,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hive'Zora Reaver,11085,11728,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hive'Zora Wasp,11088,11727,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Hive'Zora Wasp,11088,11727,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Hive'Zora Wasp,11088,11727,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hogger,384,448,Humanoid,319,1,1905,NPC item,7428,2,0,1,13,3,0
+Hogger,384,448,Humanoid,319,2,0,empty slot,0,0,0,0,0,0,0
+Hogger,384,448,Humanoid,319,3,0,empty slot,0,0,0,0,0,0,0
+Houndmaster Loksey,2040,3974,Humanoid,781,1,5286,NPC item,7508,2,0,1,13,3,614678239
+Houndmaster Loksey,2040,3974,Humanoid,781,2,5286,NPC item,7508,2,0,1,13,3,614678239
+Houndmaster Loksey,2040,3974,Humanoid,781,3,0,empty slot,0,0,0,0,0,0,614678239
+Humar the Pridelord,4424,5828,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Humar the Pridelord,4424,5828,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Humar the Pridelord,4424,5828,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Hungering Dead,1202,1527,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Hungering Dead,1202,1527,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Hungering Dead,1202,1527,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Huricanian,14525,14478,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Huricanian,14525,14478,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Huricanian,14525,14478,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Ice Claw Bear,8840,1196,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Ice Claw Bear,8840,1196,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Ice Claw Bear,8840,1196,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Interrogator Vishas,2044,3983,Humanoid,1698,1,5532,NPC item,8078,2,14,1,13,3,1
+Interrogator Vishas,2044,3983,Humanoid,1698,2,5532,NPC item,8078,2,14,1,13,3,1
+Interrogator Vishas,2044,3983,Humanoid,1698,3,0,empty slot,0,0,0,0,0,0,1
+Irondeep Miner,556,13396,Humanoid,738,1,1910,NPC item,7493,2,0,1,13,3,0
+Irondeep Miner,556,13396,Humanoid,738,2,0,empty slot,0,0,0,0,0,0,0
+Irondeep Miner,556,13396,Humanoid,738,3,0,empty slot,0,0,0,0,0,0,0
+Irondeep Peon,13335,13397,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Irondeep Peon,13335,13397,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Irondeep Peon,13335,13397,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Ironfur Bear,3201,5268,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Ironfur Bear,3201,5268,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Ironfur Bear,3201,5268,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Jadefire Felsworn,11334,7109,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Jadefire Felsworn,11334,7109,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Jadefire Felsworn,11334,7109,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Jadefire Rogue,8575,7106,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Jadefire Rogue,8575,7106,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Jadefire Rogue,8575,7106,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Jungle Stalker,11317,687,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Jungle Stalker,11317,687,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Jungle Stalker,11317,687,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Jungle Thunderer,845,1114,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Jungle Thunderer,845,1114,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Jungle Thunderer,845,1114,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Juvenile Snow Leopard,748,1199,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Juvenile Snow Leopard,748,1199,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Juvenile Snow Leopard,748,1199,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Kazon,6041,584,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Kazon,6041,584,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Kazon,6041,584,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Kel'Thuzad,15945,15990,Undead,0,1,0,no equipment template,0,0,0,0,0,0,614678239
+Kel'Thuzad,15945,15990,Undead,0,2,0,no equipment template,0,0,0,0,0,0,614678239
+Kel'Thuzad,15945,15990,Undead,0,3,0,no equipment template,0,0,0,0,0,0,614678239
+King Bangalash,616,731,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+King Bangalash,616,731,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+King Bangalash,616,731,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+King Mosh,5305,6584,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+King Mosh,5305,6584,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+King Mosh,5305,6584,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+King Mukla,792,1559,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+King Mukla,792,1559,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+King Mukla,792,1559,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Klaven Mortwake,5805,7053,Humanoid,1794,1,5284,NPC item,6454,2,15,1,13,3,0
+Klaven Mortwake,5805,7053,Humanoid,1794,2,3698,NPC item,6532,4,0,2,23,0,0
+Klaven Mortwake,5805,7053,Humanoid,1794,3,0,empty slot,0,0,0,0,0,0,0
+Kobold Miner,373,40,Humanoid,738,1,1910,NPC item,7493,2,0,1,13,3,0
+Kobold Miner,373,40,Humanoid,738,2,0,empty slot,0,0,0,0,0,0,0
+Kobold Miner,373,40,Humanoid,738,3,0,empty slot,0,0,0,0,0,0,0
+Kobold Tunneler,139,475,Humanoid,446,1,1901,NPC item,7440,2,4,2,13,3,0
+Kobold Tunneler,139,475,Humanoid,446,2,0,empty slot,0,0,0,0,0,0,0
+Kobold Tunneler,139,475,Humanoid,446,3,0,empty slot,0,0,0,0,0,0,0
+Kolkar Bloodcharger,9447,3397,Humanoid,344,1,1719,NPC item,7429,2,0,1,21,3,0
+Kolkar Bloodcharger,9447,3397,Humanoid,344,2,0,empty slot,0,0,0,0,0,0,0
+Kolkar Bloodcharger,9447,3397,Humanoid,344,3,0,empty slot,0,0,0,0,0,0,0
+Kolkar Destroyer,9446,4637,Humanoid,147,1,1639,NPC item,5128,2,1,1,17,1,0
+Kolkar Destroyer,9446,4637,Humanoid,147,2,0,empty slot,0,0,0,0,0,0,0
+Kolkar Destroyer,9446,4637,Humanoid,147,3,0,empty slot,0,0,0,0,0,0,0
+Kolkar Mauler,4874,4634,Humanoid,192,1,3848,NPC item,6434,2,15,1,13,3,0
+Kolkar Mauler,4874,4634,Humanoid,192,2,0,empty slot,0,0,0,0,0,0,0
+Kolkar Mauler,4874,4634,Humanoid,192,3,0,empty slot,0,0,0,0,0,0,0
+Kolkar Stormer,9443,3273,Humanoid,145,1,5304,NPC item,5098,2,10,2,17,2,0
+Kolkar Stormer,9443,3273,Humanoid,145,2,0,empty slot,0,0,0,0,0,0,0
+Kolkar Stormer,9443,3273,Humanoid,145,3,0,empty slot,0,0,0,0,0,0,0
+Kolkar Wrangler,9442,3272,Humanoid,1859,1,1895,NPC item,7488,2,7,1,13,3,0
+Kolkar Wrangler,9442,3272,Humanoid,1859,2,0,empty slot,0,0,0,0,0,0,0
+Kolkar Wrangler,9442,3272,Humanoid,1859,3,5258,NPC item,6231,2,2,2,15,0,0
+Krellack,6068,14476,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Krellack,6068,14476,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Krellack,6068,14476,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Kurmokk,3188,14491,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Kurmokk,3188,14491,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Kurmokk,3188,14491,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Lady Hederine,10925,10201,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Lady Hederine,10925,10201,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Lady Hederine,10925,10201,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Lakota'mani,1241,3474,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Lakota'mani,1241,3474,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Lakota'mani,1241,3474,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Lapress,14521,14473,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Lapress,14521,14473,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Lapress,14521,14473,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Large Crag Boar,381,1126,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Large Crag Boar,381,1126,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Large Crag Boar,381,1126,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+League of Arathor Elite,15280,15130,Humanoid,2075,1,13104,NPC item,23617,2,0,1,13,3,0
+League of Arathor Elite,15280,15130,Humanoid,2075,2,12995,NPC item,23575,4,6,1,14,4,0
+League of Arathor Elite,15280,15130,Humanoid,2075,3,0,empty slot,0,0,0,0,0,0,0
+Lesser Infernal,10906,4676,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Lesser Infernal,10906,4676,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Lesser Infernal,10906,4676,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Lethon,15365,14888,Dragonkin,0,1,0,no equipment template,0,0,0,0,0,0,617299803
+Lethon,15365,14888,Dragonkin,0,2,0,no equipment template,0,0,0,0,0,0,617299803
+Lethon,15365,14888,Dragonkin,0,3,0,no equipment template,0,0,0,0,0,0,617299803
+Lieutenant Grummus,14692,13145,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Lieutenant Grummus,14692,13145,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Lieutenant Grummus,14692,13145,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Lieutenant Lewis,13466,13147,Humanoid,1277,1,13627,NPC item,24366,2,7,1,13,3,0
+Lieutenant Lewis,13466,13147,Humanoid,1277,2,0,empty slot,0,0,0,0,0,0,0
+Lieutenant Lewis,13466,13147,Humanoid,1277,3,14118,NPC item,24931,2,2,2,15,0,0
+Lieutenant Stronghoof,13468,13143,Humanoid,1018,1,11323,NPC item,21194,2,8,1,17,1,0
+Lieutenant Stronghoof,13468,13143,Humanoid,1018,2,0,empty slot,0,0,0,0,0,0,0
+Lieutenant Stronghoof,13468,13143,Humanoid,1018,3,5260,NPC item,6233,2,2,2,15,0,0
+Longtooth Runner,165,5286,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Longtooth Runner,165,5286,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Longtooth Runner,165,5286,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Lord Azrethoc,4426,5760,Demon,1260,1,0,legacy raw,24167,2,7,255,1,13,0
+Lord Azrethoc,4426,5760,Demon,1260,2,0,legacy raw,0,0,0,0,0,0,0
+Lord Azrethoc,4426,5760,Demon,1260,3,0,legacy raw,0,0,0,0,0,0,0
+Lord Banehollow,8611,9516,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Lord Banehollow,8611,9516,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Lord Banehollow,8611,9516,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Lord Falconcrest,383,2597,Humanoid,1972,1,2178,NPC item,7482,2,7,1,13,3,0
+Lord Falconcrest,383,2597,Humanoid,1972,2,2178,NPC item,7482,2,7,1,13,3,0
+Lord Falconcrest,383,2597,Humanoid,1972,3,0,empty slot,0,0,0,0,0,0,0
+Lord Hel'nurath,14556,14506,Demon,0,1,0,no equipment template,0,0,0,0,0,0,614678239
+Lord Hel'nurath,14556,14506,Demon,0,2,0,no equipment template,0,0,0,0,0,0,614678239
+Lord Hel'nurath,14556,14506,Demon,0,3,0,no equipment template,0,0,0,0,0,0,614678239
+Lord Kazzak,12449,12397,Demon,0,1,0,no equipment template,0,0,0,0,0,0,617299803
+Lord Kazzak,12449,12397,Demon,0,2,0,no equipment template,0,0,0,0,0,0,617299803
+Lord Kazzak,12449,12397,Demon,0,3,0,no equipment template,0,0,0,0,0,0,617299803
+Lord Maldazzar,16508,1848,Humanoid,110,1,2559,NPC item,2469,2,10,2,17,2,0
+Lord Maldazzar,16508,1848,Humanoid,110,2,0,empty slot,0,0,0,0,0,0,0
+Lord Maldazzar,16508,1848,Humanoid,110,3,0,empty slot,0,0,0,0,0,0,0
+Lord Sakrasis,4910,2541,Humanoid,835,1,5747,NPC item,8747,2,6,1,17,2,0
+Lord Sakrasis,4910,2541,Humanoid,835,2,0,empty slot,0,0,0,0,0,0,0
+Lord Sakrasis,4910,2541,Humanoid,835,3,0,empty slot,0,0,0,0,0,0,0
+Lupos,11412,521,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Lupos,11412,521,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Lupos,11412,521,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Manahound,6173,8718,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Manahound,6173,8718,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Manahound,6173,8718,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Mangy Wolf,903,525,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Mangy Wolf,903,525,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Mangy Wolf,903,525,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Marisa du'Paige,2355,599,Humanoid,694,1,1896,NPC item,7487,2,7,1,13,3,0
+Marisa du'Paige,2355,599,Humanoid,694,2,0,empty slot,0,0,0,0,0,0,0
+Marisa du'Paige,2355,599,Humanoid,694,3,0,empty slot,0,0,0,0,0,0,0
+Mazzranache,1961,3068,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Mazzranache,1961,3068,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Mazzranache,1961,3068,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Mother Fang,2541,471,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Mother Fang,2541,471,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Mother Fang,2541,471,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Muculent Ooze,11140,6556,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Muculent Ooze,11140,6556,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Muculent Ooze,11140,6556,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Murloc,617,285,Humanoid,717,1,1895,NPC item,7488,2,7,1,13,3,0
+Murloc,617,285,Humanoid,717,2,0,empty slot,0,0,0,0,0,0,0
+Murloc,617,285,Humanoid,717,3,0,empty slot,0,0,0,0,0,0,0
+Murloc Shorestriker,1305,1083,Humanoid,619,1,2023,NPC item,7481,2,6,1,17,2,0
+Murloc Shorestriker,1305,1083,Humanoid,619,2,0,empty slot,0,0,0,0,0,0,0
+Murloc Shorestriker,1305,1083,Humanoid,619,3,0,empty slot,0,0,0,0,0,0,0
+Murloc Streamrunner,527,735,Humanoid,381,1,2695,NPC item,7432,2,4,2,13,3,0
+Murloc Streamrunner,527,735,Humanoid,381,2,0,empty slot,0,0,0,0,0,0,0
+Murloc Streamrunner,527,735,Humanoid,381,3,0,empty slot,0,0,0,0,0,0,0
+Mushgog,14382,11447,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,8395857
+Mushgog,14382,11447,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,8395857
+Mushgog,14382,11447,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,8395857
+Naraxis,963,574,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Naraxis,963,574,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Naraxis,963,574,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Narg the Taskmaster,774,79,Humanoid,429,1,1903,NPC item,7439,2,4,2,13,3,0
+Narg the Taskmaster,774,79,Humanoid,429,2,0,empty slot,0,0,0,0,0,0,0
+Narg the Taskmaster,774,79,Humanoid,429,3,0,empty slot,0,0,0,0,0,0,0
+Necromancer,10427,8553,Humanoid,110,1,2559,NPC item,2469,2,10,2,17,2,0
+Necromancer,10427,8553,Humanoid,110,2,0,empty slot,0,0,0,0,0,0,0
+Necromancer,10427,8553,Humanoid,110,3,0,empty slot,0,0,0,0,0,0,0
+Nefaru,11181,534,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Nefaru,11181,534,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Nefaru,11181,534,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Nerubian Overseer,14698,16184,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Nerubian Overseer,14698,16184,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Nerubian Overseer,14698,16184,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Nightbane Dark Runner,736,205,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Dark Runner,736,205,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Dark Runner,736,205,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Shadow Weaver,203,533,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Shadow Weaver,203,533,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Shadow Weaver,203,533,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Tainted One,1098,920,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Tainted One,1098,920,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Tainted One,1098,920,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Vile Fang,522,206,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Vile Fang,522,206,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Vile Fang,522,206,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Worgen,657,898,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Worgen,657,898,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Nightbane Worgen,657,898,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Nightsaber,6805,2042,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Nightsaber,6805,2042,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Nightsaber,6805,2042,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Oakenscowl,2567,2166,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Oakenscowl,2567,2166,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Oakenscowl,2567,2166,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Old Grizzlegut,706,5352,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Old Grizzlegut,706,5352,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Old Grizzlegut,706,5352,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Old Icebeard,1050,1271,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Old Icebeard,1050,1271,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Old Icebeard,1050,1271,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Or'Kalar,10617,2773,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Or'Kalar,10617,2773,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Or'Kalar,10617,2773,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Palemane Poacher,1217,2951,Humanoid,24,1,1896,NPC item,7487,2,7,1,13,3,0
+Palemane Poacher,1217,2951,Humanoid,24,2,2051,NPC item,1755,4,6,1,14,4,0
+Palemane Poacher,1217,2951,Humanoid,24,3,2551,NPC item,10671,2,18,1,26,0,0
+Palemane Skinner,1216,2950,Humanoid,730,1,1900,NPC item,7492,2,7,1,13,3,0
+Palemane Skinner,1216,2950,Humanoid,730,2,0,empty slot,0,0,0,0,0,0,0
+Palemane Skinner,1216,2950,Humanoid,730,3,0,empty slot,0,0,0,0,0,0,0
+Palemane Tanner,550,2949,Humanoid,575,1,2809,NPC item,7476,2,4,2,13,3,0
+Palemane Tanner,550,2949,Humanoid,575,2,0,empty slot,0,0,0,0,0,0,0
+Palemane Tanner,550,2949,Humanoid,575,3,0,empty slot,0,0,0,0,0,0,0
+Patchwerk,16174,16028,Undead,0,1,0,no equipment template,0,0,0,0,0,0,614678239
+Patchwerk,16174,16028,Undead,0,2,0,no equipment template,0,0,0,0,0,0,614678239
+Patchwerk,16174,16028,Undead,0,3,0,no equipment template,0,0,0,0,0,0,614678239
+Plaguebat,7854,8600,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Plaguebat,7854,8600,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Plaguebat,7854,8600,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Plagued Swine,6121,16117,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Plagued Swine,6121,16117,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Plagued Swine,6121,16117,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Plains Creeper,958,2563,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Plains Creeper,958,2563,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Plains Creeper,958,2563,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Plainstrider,1219,2955,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Plainstrider,1219,2955,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Plainstrider,1219,2955,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Plated Stegodon,5287,6502,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Plated Stegodon,5287,6502,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Plated Stegodon,5287,6502,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Prairie Stalker,643,2959,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Prairie Stalker,643,2959,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Prairie Stalker,643,2959,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Prairie Wolf,1100,2958,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Prairie Wolf,1100,2958,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Prairie Wolf,1100,2958,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Primal Ooze,4754,6557,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Primal Ooze,4754,6557,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Primal Ooze,4754,6557,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Prince Xavalis,11335,9877,Demon,0,1,0,no equipment template,0,0,0,0,0,0,0
+Prince Xavalis,11335,9877,Demon,0,2,0,no equipment template,0,0,0,0,0,0,0
+Prince Xavalis,11335,9877,Demon,0,3,0,no equipment template,0,0,0,0,0,0,0
+Pterrordax,8411,9166,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Pterrordax,8411,9166,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Pterrordax,8411,9166,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Putrid Gargoyle,7854,8534,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Putrid Gargoyle,7854,8534,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Putrid Gargoyle,7854,8534,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Putrid Shrieker,7855,8535,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Putrid Shrieker,7855,8535,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Putrid Shrieker,7855,8535,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Pygmy Surf Crawler,1307,3106,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Pygmy Surf Crawler,1307,3106,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Pygmy Surf Crawler,1307,3106,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Pygmy Venom Web Spider,958,539,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Pygmy Venom Web Spider,958,539,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Pygmy Venom Web Spider,958,539,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Qirot,11142,5350,Unspecified,0,1,0,no equipment template,0,0,0,0,0,0,0
+Qirot,11142,5350,Unspecified,0,2,0,no equipment template,0,0,0,0,0,0,0
+Qirot,11142,5350,Unspecified,0,3,0,no equipment template,0,0,0,0,0,0,0
+Rage Scar Yeti,3220,5296,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Rage Scar Yeti,3220,5296,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Rage Scar Yeti,3220,5296,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Rattlecage Soldier,200,1520,Undead,639,1,1899,NPC item,7483,2,7,1,13,3,8388624
+Rattlecage Soldier,200,1520,Undead,639,2,0,empty slot,0,0,0,0,0,0,8388624
+Rattlecage Soldier,200,1520,Undead,639,3,0,empty slot,0,0,0,0,0,0,8388624
+Ravaged Corpse,1201,1526,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Ravaged Corpse,1201,1526,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Ravaged Corpse,1201,1526,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Ravasaur,5242,6505,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Ravasaur,5242,6505,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Ravasaur,5242,6505,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Ravasaur Hunter,5292,6507,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Ravasaur Hunter,5292,6507,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Ravasaur Hunter,5292,6507,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Ravasaur Matriarch,11319,6581,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Ravasaur Matriarch,11319,6581,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Ravasaur Matriarch,11319,6581,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Razormane Battleguard,1964,3114,Humanoid,702,1,1896,NPC item,7487,2,7,1,13,3,0
+Razormane Battleguard,1964,3114,Humanoid,702,2,1961,NPC item,1685,4,6,1,14,4,0
+Razormane Battleguard,1964,3114,Humanoid,702,3,0,empty slot,0,0,0,0,0,0,0
+Razormane Defender,1253,3266,Humanoid,344,1,1719,NPC item,7429,2,0,1,21,3,0
+Razormane Defender,1253,3266,Humanoid,344,2,0,empty slot,0,0,0,0,0,0,0
+Razormane Defender,1253,3266,Humanoid,344,3,0,empty slot,0,0,0,0,0,0,0
+Razormane Dustrunner,6088,3113,Humanoid,344,1,1719,NPC item,7429,2,0,1,21,3,0
+Razormane Dustrunner,6088,3113,Humanoid,344,2,0,empty slot,0,0,0,0,0,0,0
+Razormane Dustrunner,6088,3113,Humanoid,344,3,0,empty slot,0,0,0,0,0,0,0
+Razormane Hunter,6094,3265,Humanoid,321,1,1905,NPC item,7428,2,0,1,13,3,0
+Razormane Hunter,6094,3265,Humanoid,321,2,0,empty slot,0,0,0,0,0,0,0
+Razormane Hunter,6094,3265,Humanoid,321,3,2551,NPC item,10671,2,18,1,26,0,0
+Razormane Mystic,4643,3271,Humanoid,838,1,1907,NPC item,10654,2,10,2,17,2,0
+Razormane Mystic,4643,3271,Humanoid,838,2,0,empty slot,0,0,0,0,0,0,0
+Razormane Mystic,4643,3271,Humanoid,838,3,0,empty slot,0,0,0,0,0,0,0
+Razormane Quilboar,1218,3111,Humanoid,446,1,1901,NPC item,7440,2,4,2,13,3,0
+Razormane Quilboar,1218,3111,Humanoid,446,2,0,empty slot,0,0,0,0,0,0,0
+Razormane Quilboar,1218,3111,Humanoid,446,3,0,empty slot,0,0,0,0,0,0,0
+Razormane Scout,1252,3112,Humanoid,26,1,2819,NPC item,6443,2,15,1,13,3,0
+Razormane Scout,1252,3112,Humanoid,26,2,0,empty slot,0,0,0,0,0,0,0
+Razormane Scout,1252,3112,Humanoid,26,3,2551,NPC item,10671,2,18,1,26,0,0
+Redridge Basher,609,446,Humanoid,1767,1,2809,NPC item,7476,2,4,2,13,3,0
+Redridge Basher,609,446,Humanoid,1767,2,2051,NPC item,1755,4,6,1,14,4,0
+Redridge Basher,609,446,Humanoid,1767,3,0,empty slot,0,0,0,0,0,0,0
+Redridge Brute,500,426,Humanoid,117,1,5491,NPC item,2839,2,5,2,17,1,0
+Redridge Brute,500,426,Humanoid,117,2,0,empty slot,0,0,0,0,0,0,0
+Redridge Brute,500,426,Humanoid,117,3,0,empty slot,0,0,0,0,0,0,0
+Redridge Drudger,551,580,Humanoid,1772,1,2558,NPC item,7442,2,4,2,13,3,0
+Redridge Drudger,551,580,Humanoid,1772,2,2809,NPC item,7476,2,4,2,13,3,0
+Redridge Drudger,551,580,Humanoid,1772,3,0,empty slot,0,0,0,0,0,0,0
+Redridge Mongrel,487,423,Humanoid,446,1,1901,NPC item,7440,2,4,2,13,3,0
+Redridge Mongrel,487,423,Humanoid,446,2,0,empty slot,0,0,0,0,0,0,0
+Redridge Mongrel,487,423,Humanoid,446,3,0,empty slot,0,0,0,0,0,0,0
+Redridge Mystic,10789,430,Humanoid,85,1,1908,NPC item,1600,2,10,2,17,2,0
+Redridge Mystic,10789,430,Humanoid,85,2,0,empty slot,0,0,0,0,0,0,0
+Redridge Mystic,10789,430,Humanoid,85,3,0,empty slot,0,0,0,0,0,0,0
+Redridge Poacher,551,424,Humanoid,321,1,1905,NPC item,7428,2,0,1,13,3,0
+Redridge Poacher,551,424,Humanoid,321,2,0,empty slot,0,0,0,0,0,0,0
+Redridge Poacher,551,424,Humanoid,321,3,2551,NPC item,10671,2,18,1,26,0,0
+Redridge Thrasher,489,712,Humanoid,358,1,3494,NPC item,7430,2,13,1,13,7,0
+Redridge Thrasher,489,712,Humanoid,358,2,0,empty slot,0,0,0,0,0,0,0
+Redridge Thrasher,489,712,Humanoid,358,3,0,empty slot,0,0,0,0,0,0,0
+Redstone Crystalhide,798,5991,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Redstone Crystalhide,798,5991,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Redstone Crystalhide,798,5991,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Ressan the Needler,9750,10357,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Ressan the Needler,9750,10357,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Ressan the Needler,9750,10357,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Rippa,14528,14490,Beast,136,1,5301,NPC item,3879,2,5,2,17,1,0
+Rippa,14528,14490,Beast,136,2,0,empty slot,0,0,0,0,0,0,0
+Rippa,14528,14490,Beast,136,3,0,empty slot,0,0,0,0,0,0,0
+Riverpaw Bandit,383,452,Humanoid,384,1,2711,NPC item,7433,2,15,1,13,3,0
+Riverpaw Bandit,383,452,Humanoid,384,2,0,empty slot,0,0,0,0,0,0,0
+Riverpaw Bandit,383,452,Humanoid,384,3,0,empty slot,0,0,0,0,0,0,0
+Riverpaw Brute,384,124,Humanoid,131,1,3326,NPC item,3502,2,5,2,17,1,0
+Riverpaw Brute,384,124,Humanoid,131,2,0,empty slot,0,0,0,0,0,0,0
+Riverpaw Brute,384,124,Humanoid,131,3,0,empty slot,0,0,0,0,0,0,0
+Riverpaw Mystic,502,453,Humanoid,173,1,5277,NPC item,5542,2,10,2,17,2,0
+Riverpaw Mystic,502,453,Humanoid,173,2,0,empty slot,0,0,0,0,0,0,0
+Riverpaw Mystic,502,453,Humanoid,173,3,0,empty slot,0,0,0,0,0,0,0
+Riverpaw Taskmaster,376,98,Humanoid,673,1,1897,NPC item,7485,2,7,1,13,3,0
+Riverpaw Taskmaster,376,98,Humanoid,673,2,2051,NPC item,1755,4,6,1,14,4,0
+Riverpaw Taskmaster,376,98,Humanoid,673,3,0,empty slot,0,0,0,0,0,0,0
+Rockhide Boar,389,524,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Rockhide Boar,389,524,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Rockhide Boar,389,524,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Rohh the Silent,10792,947,Humanoid,231,1,2819,NPC item,6443,2,15,1,13,3,0
+Rohh the Silent,10792,947,Humanoid,231,2,1900,NPC item,7492,2,7,1,13,3,0
+Rohh the Silent,10792,947,Humanoid,231,3,0,empty slot,0,0,0,0,0,0,0
+Rot Hide Gnoll,10852,1674,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Rot Hide Gnoll,10852,1674,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Rot Hide Gnoll,10852,1674,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Rot Hide Graverobber,10853,1941,Undead,766,1,1195,NPC item,7495,2,5,2,17,1,8388624
+Rot Hide Graverobber,10853,1941,Undead,766,2,0,empty slot,0,0,0,0,0,0,8388624
+Rot Hide Graverobber,10853,1941,Undead,766,3,0,empty slot,0,0,0,0,0,0,8388624
+Rot Hide Mongrel,847,1675,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Rot Hide Mongrel,847,1675,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Rot Hide Mongrel,847,1675,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Rotting Cadaver,1693,4474,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Rotting Cadaver,1693,4474,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Rotting Cadaver,1693,4474,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Rotting Dead,1200,1525,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Rotting Dead,1200,1525,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Rotting Dead,1200,1525,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Rumbling Exile,11548,2592,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Rumbling Exile,11548,2592,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Rumbling Exile,11548,2592,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Sand Skitterer,8014,11738,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Sand Skitterer,8014,11738,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Sand Skitterer,8014,11738,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Savannah Huntress,1056,3415,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Savannah Huntress,1056,3415,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Savannah Huntress,1056,3415,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Savannah Prowler,1973,3425,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Savannah Prowler,1973,3425,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Savannah Prowler,1973,3425,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Scale Belly,12342,1552,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Scale Belly,12342,1552,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Scale Belly,12342,1552,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Scarlet Abbot,2492,4303,Humanoid,157,1,5291,NPC item,5224,2,4,2,21,3,0
+Scarlet Abbot,2492,4303,Humanoid,157,2,0,empty slot,0,0,0,0,0,0,0
+Scarlet Abbot,2492,4303,Humanoid,157,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Adept,5725,4296,Humanoid,85,1,1908,NPC item,1600,2,10,2,17,2,0
+Scarlet Adept,5725,4296,Humanoid,85,2,0,empty slot,0,0,0,0,0,0,0
+Scarlet Adept,5725,4296,Humanoid,85,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Beastmaster,2497,4288,Humanoid,1702,1,1909,NPC item,7426,2,0,1,13,3,0
+Scarlet Beastmaster,2497,4288,Humanoid,1702,2,0,empty slot,0,0,0,0,0,0,0
+Scarlet Beastmaster,2497,4288,Humanoid,1702,3,5259,NPC item,6232,2,2,2,15,0,0
+Scarlet Centurion,2499,4301,Humanoid,725,1,1983,NPC item,7490,2,8,1,17,1,0
+Scarlet Centurion,2499,4301,Humanoid,725,2,0,empty slot,0,0,0,0,0,0,0
+Scarlet Centurion,2499,4301,Humanoid,725,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Champion,2460,4302,Humanoid,117,1,5491,NPC item,2839,2,5,2,17,1,0
+Scarlet Champion,2460,4302,Humanoid,117,2,0,empty slot,0,0,0,0,0,0,0
+Scarlet Champion,2460,4302,Humanoid,117,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Commander Mograine,2042,3976,Humanoid,1696,1,7706,NPC item,15786,2,5,2,13,1,614678239
+Scarlet Commander Mograine,2042,3976,Humanoid,1696,2,0,empty slot,0,0,0,0,0,0,614678239
+Scarlet Commander Mograine,2042,3976,Humanoid,1696,3,0,empty slot,0,0,0,0,0,0,614678239
+Scarlet Conjuror,2504,4297,Humanoid,96,1,2177,NPC item,1927,2,10,2,17,2,0
+Scarlet Conjuror,2504,4297,Humanoid,96,2,0,empty slot,0,0,0,0,0,0,0
+Scarlet Conjuror,2504,4297,Humanoid,96,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Defender,2462,4298,Humanoid,1705,1,1896,NPC item,7487,2,7,1,13,3,0
+Scarlet Defender,2462,4298,Humanoid,1705,2,1984,NPC item,1705,4,6,1,14,4,0
+Scarlet Defender,2462,4298,Humanoid,1705,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Diviner,2508,4291,Humanoid,145,1,5304,NPC item,5098,2,10,2,17,2,0
+Scarlet Diviner,2508,4291,Humanoid,145,2,0,empty slot,0,0,0,0,0,0,0
+Scarlet Diviner,2508,4291,Humanoid,145,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Evoker,2509,4289,Humanoid,173,1,5277,NPC item,5542,2,10,2,17,2,0
+Scarlet Evoker,2509,4289,Humanoid,173,2,0,empty slot,0,0,0,0,0,0,0
+Scarlet Evoker,2509,4289,Humanoid,173,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Gallant,2463,4287,Humanoid,1701,1,3361,NPC item,7477,2,4,2,13,3,0
+Scarlet Gallant,2463,4287,Humanoid,1701,2,1961,NPC item,1685,4,6,1,14,4,0
+Scarlet Gallant,2463,4287,Humanoid,1701,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Knight,4418,1833,Humanoid,647,1,1899,NPC item,7483,2,7,1,13,3,0
+Scarlet Knight,4418,1833,Humanoid,647,2,1985,NPC item,1706,4,6,1,14,4,0
+Scarlet Knight,4418,1833,Humanoid,647,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Missionary,2468,1536,Humanoid,838,1,1907,NPC item,10654,2,10,2,17,2,0
+Scarlet Missionary,2468,1536,Humanoid,838,2,0,empty slot,0,0,0,0,0,0,0
+Scarlet Missionary,2468,1536,Humanoid,838,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Myrmidon,2515,4295,Humanoid,1704,1,5305,NPC item,7526,2,7,1,13,3,0
+Scarlet Myrmidon,2515,4295,Humanoid,1704,2,1895,NPC item,7488,2,7,1,13,3,0
+Scarlet Myrmidon,2515,4295,Humanoid,1704,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Sentry,2520,4283,Humanoid,1700,1,2147,NPC item,7419,2,7,1,13,3,0
+Scarlet Sentry,2520,4283,Humanoid,1700,2,1957,NPC item,1684,4,6,1,14,4,0
+Scarlet Sentry,2520,4283,Humanoid,1700,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Soldier,2522,4286,Humanoid,645,1,1899,NPC item,7483,2,7,1,13,3,0
+Scarlet Soldier,2522,4286,Humanoid,645,2,1984,NPC item,1705,4,6,1,14,4,0
+Scarlet Soldier,2522,4286,Humanoid,645,3,0,empty slot,0,0,0,0,0,0,0
+Scarlet Torturer,2607,4306,Humanoid,805,1,0,legacy raw,8078,2,14,255,1,13,0
+Scarlet Torturer,2607,4306,Humanoid,805,2,0,legacy raw,0,0,0,0,0,0,0
+Scarlet Torturer,2607,4306,Humanoid,805,3,0,legacy raw,0,0,0,0,0,0,0
+Scarlet Tracking Hound,2709,4304,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Scarlet Tracking Hound,2709,4304,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Scarlet Tracking Hound,2709,4304,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Scarlet Zealot,2483,1537,Humanoid,725,1,1983,NPC item,7490,2,8,1,17,1,0
+Scarlet Zealot,2483,1537,Humanoid,725,2,0,empty slot,0,0,0,0,0,0,0
+Scarlet Zealot,2483,1537,Humanoid,725,3,0,empty slot,0,0,0,0,0,0,0
+Scorching Elemental,1070,6520,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Scorching Elemental,1070,6520,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Scorching Elemental,1070,6520,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Scourge Soldier,5231,8523,Undead,639,1,1899,NPC item,7483,2,7,1,13,3,8388624
+Scourge Soldier,5231,8523,Undead,639,2,0,empty slot,0,0,0,0,0,0,8388624
+Scourge Soldier,5231,8523,Undead,639,3,0,empty slot,0,0,0,0,0,0,8388624
+Scourge Warder,612,8525,Undead,327,1,1905,NPC item,7428,2,0,1,13,3,8388624
+Scourge Warder,612,8525,Undead,327,2,1984,NPC item,1705,4,6,1,14,4,8388624
+Scourge Warder,612,8525,Undead,327,3,0,empty slot,0,0,0,0,0,0,8388624
+Sergeant Brashclaw,383,506,Humanoid,308,1,2183,NPC item,7427,2,0,1,13,3,0
+Sergeant Brashclaw,383,506,Humanoid,308,2,0,empty slot,0,0,0,0,0,0,0
+Sergeant Brashclaw,383,506,Humanoid,308,3,0,empty slot,0,0,0,0,0,0,0
+Setis,5965,14471,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Setis,5965,14471,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Setis,5965,14471,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Shadowmaw Panther,633,684,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Shadowmaw Panther,633,684,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Shadowmaw Panther,633,684,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Shadowsworn Cultist,7838,6004,Humanoid,1712,1,5280,NPC item,6441,2,15,1,13,3,0
+Shadowsworn Cultist,7838,6004,Humanoid,1712,2,0,empty slot,0,0,0,0,0,0,0
+Shadowsworn Cultist,7838,6004,Humanoid,1712,3,2946,NPC item,16752,2,16,1,25,0,0
+Shambling Horror,1197,1528,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Shambling Horror,1197,1528,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Shambling Horror,1197,1528,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Silithid Protector,1307,3503,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Silithid Protector,1307,3503,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Silithid Protector,1307,3503,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Silithid Swarmer,2731,3252,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Silithid Swarmer,2731,3252,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Silithid Swarmer,2731,3252,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Silverwing Blade Champion,14713,14715,Humanoid,331,1,5598,NPC item,8377,2,0,1,13,7,0
+Silverwing Blade Champion,14713,14715,Humanoid,331,2,0,empty slot,0,0,0,0,0,0,0
+Silverwing Blade Champion,14713,14715,Humanoid,331,3,13147,NPC item,23639,2,2,2,15,0,0
+Silverwing Elite,14712,14715,Humanoid,331,1,5598,NPC item,8377,2,0,1,13,7,0
+Silverwing Elite,14712,14715,Humanoid,331,2,0,empty slot,0,0,0,0,0,0,0
+Silverwing Elite,14712,14715,Humanoid,331,3,13147,NPC item,23639,2,2,2,15,0,0
+Silverwing Field Marshal,14712,14715,Humanoid,331,1,5598,NPC item,8377,2,0,1,13,7,0
+Silverwing Field Marshal,14712,14715,Humanoid,331,2,0,empty slot,0,0,0,0,0,0,0
+Silverwing Field Marshal,14712,14715,Humanoid,331,3,13147,NPC item,23639,2,2,2,15,0,0
+Silverwing Sentinel,4842,12896,Humanoid,98,1,5598,NPC item,8377,2,0,1,13,7,0
+Silverwing Sentinel,4842,12896,Humanoid,98,2,0,empty slot,0,0,0,0,0,0,0
+Silverwing Sentinel,4842,12896,Humanoid,98,3,2504,NPC item,8106,2,2,2,15,0,0
+Silverwing Sentinel Captain,4842,12896,Humanoid,98,1,5598,NPC item,8377,2,0,1,13,7,0
+Silverwing Sentinel Captain,4842,12896,Humanoid,98,2,0,empty slot,0,0,0,0,0,0,0
+Silverwing Sentinel Captain,4842,12896,Humanoid,98,3,2504,NPC item,8106,2,2,2,15,0,0
+Silverwing Vanguard,4841,12897,Humanoid,639,1,1899,NPC item,7483,2,7,1,13,3,0
+Silverwing Vanguard,4841,12897,Humanoid,639,2,0,empty slot,0,0,0,0,0,0,0
+Silverwing Vanguard,4841,12897,Humanoid,639,3,0,empty slot,0,0,0,0,0,0,0
+Silverwing Warrior,4841,12897,Humanoid,639,1,1899,NPC item,7483,2,7,1,13,3,0
+Silverwing Warrior,4841,12897,Humanoid,639,2,0,empty slot,0,0,0,0,0,0,0
+Silverwing Warrior,4841,12897,Humanoid,639,3,0,empty slot,0,0,0,0,0,0,0
+Singe,497,335,Dragonkin,0,1,0,no equipment template,0,0,0,0,0,0,0
+Singe,497,335,Dragonkin,0,2,0,no equipment template,0,0,0,0,0,0,0
+Singe,497,335,Dragonkin,0,3,0,no equipment template,0,0,0,0,0,0,0
+Skarr the Unbreakable,10169,11498,Humanoid,2430,1,0,legacy raw,782,2,3,255,1,13,8395857
+Skarr the Unbreakable,10169,11498,Humanoid,2430,2,0,legacy raw,0,0,0,0,0,0,8395857
+Skarr the Unbreakable,10169,11498,Humanoid,2430,3,0,legacy raw,0,0,0,0,0,0,8395857
+Skeletal Flayer,10626,1783,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Skeletal Flayer,10626,1783,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Skeletal Flayer,10626,1783,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Skeletal Horror,9786,202,Undead,694,1,1896,NPC item,7487,2,7,1,13,3,8388624
+Skeletal Horror,9786,202,Undead,694,2,0,empty slot,0,0,0,0,0,0,8388624
+Skeletal Horror,9786,202,Undead,694,3,0,empty slot,0,0,0,0,0,0,8388624
+Skeletal Mage,9783,203,Undead,85,1,1908,NPC item,1600,2,10,2,17,2,8388624
+Skeletal Mage,9783,203,Undead,85,2,0,empty slot,0,0,0,0,0,0,8388624
+Skeletal Mage,9783,203,Undead,85,3,0,empty slot,0,0,0,0,0,0,8388624
+Skeletal Warrior,200,48,Undead,291,1,1909,NPC item,7426,2,0,1,13,3,8388624
+Skeletal Warrior,200,48,Undead,291,2,0,empty slot,0,0,0,0,0,0,8388624
+Skeletal Warrior,200,48,Undead,291,3,0,empty slot,0,0,0,0,0,0,8388624
+Skeletal Warrior,5231,48,Undead,291,1,1909,NPC item,7426,2,0,1,13,3,8388624
+Skeletal Warrior,5231,48,Undead,291,2,0,empty slot,0,0,0,0,0,0,8388624
+Skeletal Warrior,5231,48,Undead,291,3,0,empty slot,0,0,0,0,0,0,8388624
+Skullsplitter Berserker,4623,783,Humanoid,133,1,5289,NPC item,3797,2,1,1,17,1,0
+Skullsplitter Berserker,4623,783,Humanoid,133,2,0,empty slot,0,0,0,0,0,0,0
+Skullsplitter Berserker,4623,783,Humanoid,133,3,0,empty slot,0,0,0,0,0,0,0
+Skullsplitter Hunter,4628,669,Humanoid,384,1,2711,NPC item,7433,2,15,1,13,3,0
+Skullsplitter Hunter,4628,669,Humanoid,384,2,0,empty slot,0,0,0,0,0,0,0
+Skullsplitter Hunter,4628,669,Humanoid,384,3,0,empty slot,0,0,0,0,0,0,0
+Skullsplitter Mystic,4616,780,Humanoid,85,1,1908,NPC item,1600,2,10,2,17,2,0
+Skullsplitter Mystic,4616,780,Humanoid,85,2,0,empty slot,0,0,0,0,0,0,0
+Skullsplitter Mystic,4616,780,Humanoid,85,3,0,empty slot,0,0,0,0,0,0,0
+Slaughterhouse Protector,7864,12263,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Slaughterhouse Protector,7864,12263,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Slaughterhouse Protector,7864,12263,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Snagglespear,275,5786,Humanoid,613,1,3433,NPC item,7480,2,6,1,17,2,0
+Snagglespear,275,5786,Humanoid,613,2,0,empty slot,0,0,0,0,0,0,0
+Snagglespear,275,5786,Humanoid,613,3,0,empty slot,0,0,0,0,0,0,0
+Snarler,780,5356,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Snarler,780,5356,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Snarler,780,5356,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Snickerfang Hyena,2714,5985,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Snickerfang Hyena,2714,5985,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Snickerfang Hyena,2714,5985,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Snow Leopard,954,1201,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Snow Leopard,954,1201,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Snow Leopard,954,1201,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Snow Tracker Wolf,604,1138,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Snow Tracker Wolf,604,1138,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Snow Tracker Wolf,604,1138,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Starving Snickerfang,8050,5984,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Starving Snickerfang,8050,5984,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Starving Snickerfang,8050,5984,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Stegodon,5241,6501,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Stegodon,5241,6501,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Stegodon,5241,6501,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Stitched Horror,1693,8543,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Stitched Horror,1693,8543,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Stitched Horror,1693,8543,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Stone Guardian,8395,6560,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Stone Guardian,8395,6560,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Stone Guardian,8395,6560,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Stonelash Flayer,15385,11737,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Stonelash Flayer,15385,11737,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Stonelash Flayer,15385,11737,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Stonelash Scorpid,15383,11735,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Stonelash Scorpid,15383,11735,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Stonelash Scorpid,15383,11735,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Stonetusk Boar,503,113,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Stonetusk Boar,503,113,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Stonetusk Boar,503,113,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Stormpike Bowman,13390,13358,Humanoid,8,1,0,empty slot,0,0,0,0,0,0,0
+Stormpike Bowman,13390,13358,Humanoid,8,2,0,empty slot,0,0,0,0,0,0,0
+Stormpike Bowman,13390,13358,Humanoid,8,3,5262,NPC item,6235,2,2,2,15,0,0
+Stormpike Defender,13274,12050,Humanoid,885,1,12890,NPC item,12274,2,7,1,13,3,0
+Stormpike Defender,13274,12050,Humanoid,885,2,12995,NPC item,23575,4,6,1,14,4,0
+Stormpike Defender,13274,12050,Humanoid,885,3,5261,NPC item,6234,2,2,2,15,0,0
+Stormpike Guardsman,13253,12127,Humanoid,792,1,5305,NPC item,7526,2,7,1,13,3,0
+Stormpike Guardsman,13253,12127,Humanoid,792,2,1985,NPC item,1706,4,6,1,14,4,0
+Stormpike Guardsman,13253,12127,Humanoid,792,3,5261,NPC item,6234,2,2,2,15,0,0
+Stormsnout,1537,3240,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Stormsnout,1537,3240,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Stormsnout,1537,3240,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Stranglethorn Tigress,614,772,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Stranglethorn Tigress,614,772,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Stranglethorn Tigress,614,772,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Strigid Owl,10832,1995,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Strigid Owl,10832,1995,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Strigid Owl,10832,1995,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Stromgarde Cavalryman,4145,2738,Humanoid,417,1,3432,NPC item,7437,2,6,1,17,2,0
+Stromgarde Cavalryman,4145,2738,Humanoid,417,2,0,empty slot,0,0,0,0,0,0,0
+Stromgarde Cavalryman,4145,2738,Humanoid,417,3,0,empty slot,0,0,0,0,0,0,0
+Stromgarde Defender,4137,2584,Humanoid,1969,1,2178,NPC item,7482,2,7,1,13,3,0
+Stromgarde Defender,4137,2584,Humanoid,1969,2,6434,NPC item,18690,4,6,1,14,4,0
+Stromgarde Defender,4137,2584,Humanoid,1969,3,0,empty slot,0,0,0,0,0,0,0
+Stromgarde Troll Hunter,4139,2583,Humanoid,1968,1,1909,NPC item,7426,2,0,1,13,3,0
+Stromgarde Troll Hunter,4139,2583,Humanoid,1968,2,2081,NPC item,6537,4,0,1,23,7,0
+Stromgarde Troll Hunter,4139,2583,Humanoid,1968,3,0,empty slot,0,0,0,0,0,0,0
+Stromgarde Vindicator,4143,2585,Humanoid,105,1,2557,NPC item,2466,2,5,2,17,1,0
+Stromgarde Vindicator,4143,2585,Humanoid,105,2,0,empty slot,0,0,0,0,0,0,0
+Stromgarde Vindicator,4143,2585,Humanoid,105,3,0,empty slot,0,0,0,0,0,0,0
+Sunscale Lashtail,1744,3254,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Sunscale Lashtail,1744,3254,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Sunscale Lashtail,1744,3254,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Sunscale Screecher,1747,3255,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Sunscale Screecher,1747,3255,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Sunscale Screecher,1747,3255,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Sunscale Scytheclaw,4442,3256,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Sunscale Scytheclaw,4442,3256,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Sunscale Scytheclaw,4442,3256,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Swoop,1229,2970,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Swoop,1229,2970,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Swoop,1229,2970,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Syndicate Highwayman,2342,2586,Humanoid,396,1,2184,NPC item,7434,2,15,1,13,3,0
+Syndicate Highwayman,2342,2586,Humanoid,396,2,0,empty slot,0,0,0,0,0,0,0
+Syndicate Highwayman,2342,2586,Humanoid,396,3,0,empty slot,0,0,0,0,0,0,0
+Taerar,15363,14890,Dragonkin,0,1,0,no equipment template,0,0,0,0,0,0,617299803
+Taerar,15363,14890,Dragonkin,0,2,0,no equipment template,0,0,0,0,0,0,617299803
+Taerar,15363,14890,Dragonkin,0,3,0,no equipment template,0,0,0,0,0,0,617299803
+Takk the Leaper,1337,5842,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Takk the Leaper,1337,5842,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Takk the Leaper,1337,5842,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Tar Beast,1549,6517,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Tar Beast,1549,6517,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Tar Beast,1549,6517,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Tar Lurker,9010,6518,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Tar Lurker,9010,6518,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Tar Lurker,9010,6518,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Tarantula,366,442,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Tarantula,366,442,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Tarantula,366,442,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Teremus the Devourer,6378,7846,Dragonkin,0,1,0,no equipment template,0,0,0,0,0,0,617299803
+Teremus the Devourer,6378,7846,Dragonkin,0,2,0,no equipment template,0,0,0,0,0,0,617299803
+Teremus the Devourer,6378,7846,Dragonkin,0,3,0,no equipment template,0,0,0,0,0,0,617299803
+Tethis,8472,730,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Tethis,8472,730,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Tethis,8472,730,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Thaddius,16137,15928,Undead,0,1,0,no equipment template,0,0,0,0,0,0,614678239
+Thaddius,16137,15928,Undead,0,2,0,no equipment template,0,0,0,0,0,0,614678239
+Thaddius,16137,15928,Undead,0,3,0,no equipment template,0,0,0,0,0,0,614678239
+Tharil'zun,6043,486,Humanoid,725,1,1983,NPC item,7490,2,8,1,17,1,0
+Tharil'zun,6043,486,Humanoid,725,2,0,empty slot,0,0,0,0,0,0,0
+Tharil'zun,6043,486,Humanoid,725,3,0,empty slot,0,0,0,0,0,0,0
+The Hederine Slayer,10729,7463,Demon,308,1,2183,NPC item,7427,2,0,1,13,3,0
+The Hederine Slayer,10729,7463,Demon,308,2,0,empty slot,0,0,0,0,0,0,0
+The Hederine Slayer,10729,7463,Demon,308,3,0,empty slot,0,0,0,0,0,0,0
+The Razza,10807,11497,Beast,0,1,0,no equipment template,0,0,0,0,0,0,8395857
+The Razza,10807,11497,Beast,0,2,0,no equipment template,0,0,0,0,0,0,8395857
+The Razza,10807,11497,Beast,0,3,0,no equipment template,0,0,0,0,0,0,8395857
+Thrashtail Basilisk,8802,1550,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Thrashtail Basilisk,8802,1550,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Thrashtail Basilisk,8802,1550,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Threggil,904,14432,Demon,330,1,8226,NPC item,16539,2,7,1,13,3,0
+Threggil,904,14432,Demon,330,2,0,empty slot,0,0,0,0,0,0,0
+Threggil,904,14432,Demon,330,3,0,empty slot,0,0,0,0,0,0,0
+Thunderhawk Hatchling,1742,3247,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Thunderhawk Hatchling,1742,3247,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Thunderhawk Hatchling,1742,3247,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Thunderhead,1538,3239,Beast,1123,1,12744,NPC item,23172,2,14,1,13,0,0
+Thunderhead,1538,3239,Beast,1123,2,12856,NPC item,23319,2,14,1,13,0,0
+Thunderhead,1538,3239,Beast,1123,3,0,empty slot,0,0,0,0,0,0,0
+Thuros Lightfingers,3341,61,Humanoid,737,1,1900,NPC item,7492,2,7,1,13,3,0
+Thuros Lightfingers,3341,61,Humanoid,737,2,1900,NPC item,7492,2,7,1,13,3,0
+Thuros Lightfingers,3341,61,Humanoid,737,3,0,empty slot,0,0,0,0,0,0,0
+Timber,11422,1132,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Timber,11422,1132,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Timber,11422,1132,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Timber Wolf,604,69,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Timber Wolf,604,69,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Timber Wolf,604,69,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Timberling,3033,2022,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Timberling,3033,2022,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Timberling,3033,2022,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Timberling Bark Ripper,6817,2025,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Timberling Bark Ripper,6817,2025,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Timberling Bark Ripper,6817,2025,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Tormented Spirit,9534,1533,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Tormented Spirit,9534,1533,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Tormented Spirit,9534,1533,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Torn Screamer,984,8540,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Torn Screamer,984,8540,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Torn Screamer,984,8540,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Twilight Avenger,11811,11880,Humanoid,306,1,13312,NPC item,23948,2,4,2,13,3,0
+Twilight Avenger,11811,11880,Humanoid,306,2,13312,NPC item,23948,2,4,2,13,3,0
+Twilight Avenger,11811,11880,Humanoid,306,3,0,empty slot,0,0,0,0,0,0,0
+Twilight Lord Everun,14526,14479,Humanoid,1301,1,13722,NPC item,24489,2,10,2,17,2,0
+Twilight Lord Everun,14526,14479,Humanoid,1301,2,0,empty slot,0,0,0,0,0,0,0
+Twilight Lord Everun,14526,14479,Humanoid,1301,3,0,empty slot,0,0,0,0,0,0,0
+Twilight Overlord,15407,15213,Humanoid,1463,1,20718,NPC item,33163,2,10,2,17,2,0
+Twilight Overlord,15407,15213,Humanoid,1463,2,0,empty slot,0,0,0,0,0,0,0
+Twilight Overlord,15407,15213,Humanoid,1463,3,0,empty slot,0,0,0,0,0,0,0
+Twilight Stonecaller,11815,11882,Humanoid,1086,1,12421,NPC item,22563,2,10,2,17,2,0
+Twilight Stonecaller,11815,11882,Humanoid,1086,2,0,empty slot,0,0,0,0,0,0,0
+Twilight Stonecaller,11815,11882,Humanoid,1086,3,0,empty slot,0,0,0,0,0,0,0
+Tyrant Devilsaur,5240,6500,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Tyrant Devilsaur,5240,6500,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Tyrant Devilsaur,5240,6500,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+U'cha,8844,9622,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+U'cha,8844,9622,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+U'cha,8844,9622,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Uhk'loc,8129,6585,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Uhk'loc,8129,6585,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Uhk'loc,8129,6585,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Unfettered Spirit,5430,4308,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Unfettered Spirit,5430,4308,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Unfettered Spirit,5430,4308,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Uruson,6818,14428,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Uruson,6818,14428,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Uruson,6818,14428,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Vagash,1050,1388,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Vagash,1050,1388,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Vagash,1050,1388,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Vampiric Duskbat,8808,1554,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Vampiric Duskbat,8808,1554,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Vampiric Duskbat,8808,1554,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Vanndar Stormpike,11896,11948,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,617299803
+Vanndar Stormpike,11896,11948,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,617299803
+Vanndar Stormpike,11896,11948,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,617299803
+Venom Web Spider,955,217,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Venom Web Spider,955,217,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Venom Web Spider,955,217,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Venture Co. Hireling,7243,2975,Humanoid,396,1,2184,NPC item,7434,2,15,1,13,3,0
+Venture Co. Hireling,7243,2975,Humanoid,396,2,0,empty slot,0,0,0,0,0,0,0
+Venture Co. Hireling,7243,2975,Humanoid,396,3,0,empty slot,0,0,0,0,0,0,0
+Venture Co. Laborer,7244,2976,Humanoid,738,1,1910,NPC item,7493,2,0,1,13,3,0
+Venture Co. Laborer,7244,2976,Humanoid,738,2,0,empty slot,0,0,0,0,0,0,0
+Venture Co. Laborer,7244,2976,Humanoid,738,3,0,empty slot,0,0,0,0,0,0,0
+Venture Co. Taskmaster,7246,2977,Humanoid,865,1,1906,NPC item,12236,2,4,2,13,7,0
+Venture Co. Taskmaster,7246,2977,Humanoid,865,2,0,empty slot,0,0,0,0,0,0,0
+Venture Co. Taskmaster,7246,2977,Humanoid,865,3,0,empty slot,0,0,0,0,0,0,0
+Verifonix,7232,14492,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Verifonix,7232,14492,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Verifonix,7232,14492,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Vicious Grell,6811,2005,Demon,575,1,2809,NPC item,7476,2,4,2,13,3,0
+Vicious Grell,6811,2005,Demon,575,2,0,empty slot,0,0,0,0,0,0,0
+Vicious Grell,6811,2005,Demon,575,3,0,empty slot,0,0,0,0,0,0,0
+Vile Familiar,1185,3101,Humanoid,381,1,2695,NPC item,7432,2,4,2,13,3,0
+Vile Familiar,1185,3101,Humanoid,381,2,0,empty slot,0,0,0,0,0,0,0
+Vile Familiar,1185,3101,Humanoid,381,3,0,empty slot,0,0,0,0,0,0,0
+Vultros,507,462,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Vultros,507,462,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Vultros,507,462,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Wandering Forest Walker,9592,7584,Elemental,0,1,0,no equipment template,0,0,0,0,0,0,0
+Wandering Forest Walker,9592,7584,Elemental,0,2,0,no equipment template,0,0,0,0,0,0,0
+Wandering Forest Walker,9592,7584,Elemental,0,3,0,no equipment template,0,0,0,0,0,0,0
+Warsong Grunt,11861,11682,Humanoid,992,1,11019,NPC item,20502,2,7,1,13,3,0
+Warsong Grunt,11861,11682,Humanoid,992,2,12452,NPC item,22635,4,6,1,14,4,0
+Warsong Grunt,11861,11682,Humanoid,992,3,0,empty slot,0,0,0,0,0,0,0
+Warsong Grunt Champion,11861,11682,Humanoid,992,1,11019,NPC item,20502,2,7,1,13,3,0
+Warsong Grunt Champion,11861,11682,Humanoid,992,2,12452,NPC item,22635,4,6,1,14,4,0
+Warsong Grunt Champion,11861,11682,Humanoid,992,3,0,empty slot,0,0,0,0,0,0,0
+Warsong Gulch Warmaster,11871,12864,Humanoid,198,1,3848,NPC item,6434,2,15,1,13,3,0
+Warsong Gulch Warmaster,11871,12864,Humanoid,198,2,0,empty slot,0,0,0,0,0,0,0
+Warsong Gulch Warmaster,11871,12864,Humanoid,198,3,14118,NPC item,24931,2,2,2,15,0,0
+Warsong Outrider,11871,12864,Humanoid,198,1,3848,NPC item,6434,2,15,1,13,3,0
+Warsong Outrider,11871,12864,Humanoid,198,2,0,empty slot,0,0,0,0,0,0,0
+Warsong Outrider,11871,12864,Humanoid,198,3,14118,NPC item,24931,2,2,2,15,0,0
+Warsong Peon,11857,11656,Humanoid,1101,1,12629,NPC item,22893,2,0,1,13,3,0
+Warsong Peon,11857,11656,Humanoid,1101,2,0,empty slot,0,0,0,0,0,0,0
+Warsong Peon,11857,11656,Humanoid,1101,3,0,empty slot,0,0,0,0,0,0,0
+Warsong Runner,11872,12863,Humanoid,198,1,3848,NPC item,6434,2,15,1,13,3,0
+Warsong Runner,11872,12863,Humanoid,198,2,0,empty slot,0,0,0,0,0,0,0
+Warsong Runner,11872,12863,Humanoid,198,3,14118,NPC item,24931,2,2,2,15,0,0
+Warsong Scout,11869,12862,Humanoid,198,1,3848,NPC item,6434,2,15,1,13,3,0
+Warsong Scout,11869,12862,Humanoid,198,2,0,empty slot,0,0,0,0,0,0,0
+Warsong Scout,11869,12862,Humanoid,198,3,14118,NPC item,24931,2,2,2,15,0,0
+Warsong Scout Captain,11869,12862,Humanoid,198,1,3848,NPC item,6434,2,15,1,13,3,0
+Warsong Scout Captain,11869,12862,Humanoid,198,2,0,empty slot,0,0,0,0,0,0,0
+Warsong Scout Captain,11869,12862,Humanoid,198,3,14118,NPC item,24931,2,2,2,15,0,0
+Warsong Shaman,11865,11683,Humanoid,119,1,5303,NPC item,2840,2,10,2,17,2,0
+Warsong Shaman,11865,11683,Humanoid,119,2,0,empty slot,0,0,0,0,0,0,0
+Warsong Shaman,11865,11683,Humanoid,119,3,0,empty slot,0,0,0,0,0,0,0
+Warsong Shaman Elder,11865,11683,Humanoid,119,1,5303,NPC item,2840,2,10,2,17,2,0
+Warsong Shaman Elder,11865,11683,Humanoid,119,2,0,empty slot,0,0,0,0,0,0,0
+Warsong Shaman Elder,11865,11683,Humanoid,119,3,0,empty slot,0,0,0,0,0,0,0
+Warsong Shredder,1303,11684,Mechanical,0,1,0,no equipment template,0,0,0,0,0,0,16384
+Warsong Shredder,1303,11684,Mechanical,0,2,0,no equipment template,0,0,0,0,0,0,16384
+Warsong Shredder,1303,11684,Mechanical,0,3,0,no equipment template,0,0,0,0,0,0,16384
+Warsong Shredder Foreman,1303,11684,Mechanical,0,1,0,no equipment template,0,0,0,0,0,0,16384
+Warsong Shredder Foreman,1303,11684,Mechanical,0,2,0,no equipment template,0,0,0,0,0,0,16384
+Warsong Shredder Foreman,1303,11684,Mechanical,0,3,0,no equipment template,0,0,0,0,0,0,16384
+Webwood Lurker,760,1998,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Webwood Lurker,760,1998,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Webwood Lurker,760,1998,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Wendigo,950,1135,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Wendigo,950,1135,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Wendigo,950,1135,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Whitewhisker Vermin,371,10982,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Whitewhisker Vermin,371,10982,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Whitewhisker Vermin,371,10982,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Winter Wolf,785,1131,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Winter Wolf,785,1131,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Winter Wolf,785,1131,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Wiry Swoop,1228,2969,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Wiry Swoop,1228,2969,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Wiry Swoop,1228,2969,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Witchwing Harpy,3218,3276,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Witchwing Harpy,3218,3276,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Witchwing Harpy,3218,3276,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Witchwing Slayer,2163,3278,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Witchwing Slayer,2163,3278,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Witchwing Slayer,2163,3278,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Witherbark Axe Thrower,10706,2554,Humanoid,1965,1,1905,NPC item,7428,2,0,1,13,3,0
+Witherbark Axe Thrower,10706,2554,Humanoid,1965,2,1905,NPC item,7428,2,0,1,13,3,0
+Witherbark Axe Thrower,10706,2554,Humanoid,1965,3,5856,NPC item,16751,2,16,1,25,0,0
+Woodpaw Alpha,10793,5258,Humanoid,0,1,0,no equipment template,0,0,0,0,0,0,0
+Woodpaw Alpha,10793,5258,Humanoid,0,2,0,no equipment template,0,0,0,0,0,0,0
+Woodpaw Alpha,10793,5258,Humanoid,0,3,0,no equipment template,0,0,0,0,0,0,0
+Woodpaw Mongrel,8598,5249,Humanoid,381,1,2695,NPC item,7432,2,4,2,13,3,0
+Woodpaw Mongrel,8598,5249,Humanoid,381,2,0,empty slot,0,0,0,0,0,0,0
+Woodpaw Mongrel,8598,5249,Humanoid,381,3,0,empty slot,0,0,0,0,0,0,0
+Woodpaw Mystic,10794,5254,Humanoid,119,1,5303,NPC item,2840,2,10,2,17,2,0
+Woodpaw Mystic,10794,5254,Humanoid,119,2,0,empty slot,0,0,0,0,0,0,0
+Woodpaw Mystic,10794,5254,Humanoid,119,3,0,empty slot,0,0,0,0,0,0,0
+Woodpaw Reaver,10795,5255,Humanoid,127,1,5287,NPC item,3385,2,1,1,17,1,0
+Woodpaw Reaver,10795,5255,Humanoid,127,2,0,empty slot,0,0,0,0,0,0,0
+Woodpaw Reaver,10795,5255,Humanoid,127,3,0,empty slot,0,0,0,0,0,0,0
+Woodpaw Trapper,10796,5251,Humanoid,1932,1,1719,NPC item,7429,2,0,1,21,3,0
+Woodpaw Trapper,10796,5251,Humanoid,1932,2,0,empty slot,0,0,0,0,0,0,0
+Woodpaw Trapper,10796,5251,Humanoid,1932,3,2552,NPC item,6593,2,3,1,26,0,0
+Young Black Bear,8843,1128,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Young Black Bear,8843,1128,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Young Black Bear,8843,1128,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Young Black Ravager,246,923,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Young Black Ravager,246,923,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Young Black Ravager,246,923,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Young Diemetradon,8510,9162,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Young Diemetradon,8510,9162,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Young Diemetradon,8510,9162,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Young Fleshripper,410,199,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Young Fleshripper,410,199,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Young Fleshripper,410,199,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Young Forest Bear,1006,822,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Young Forest Bear,1006,822,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Young Forest Bear,1006,822,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Young Goretusk,8871,454,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Young Goretusk,8871,454,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Young Goretusk,8871,454,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Young Nightsaber,11454,2031,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Young Nightsaber,11454,2031,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Young Nightsaber,11454,2031,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Young Thistle Boar,8869,1984,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Young Thistle Boar,8869,1984,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Young Thistle Boar,8869,1984,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Young Wendigo,929,1134,Humanoid,604,1,2813,NPC item,7478,2,4,2,13,3,0
+Young Wendigo,929,1134,Humanoid,604,2,0,empty slot,0,0,0,0,0,0,0
+Young Wendigo,929,1134,Humanoid,604,3,0,empty slot,0,0,0,0,0,0,0
+Young Wolf,447,299,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Young Wolf,447,299,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Young Wolf,447,299,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Ysondre,15364,14887,Dragonkin,0,1,0,no equipment template,0,0,0,0,0,0,617299803
+Ysondre,15364,14887,Dragonkin,0,2,0,no equipment template,0,0,0,0,0,0,617299803
+Ysondre,15364,14887,Dragonkin,0,3,0,no equipment template,0,0,0,0,0,0,617299803
+Zanzil Hunter,828,1489,Undead,1754,1,2023,NPC item,7481,2,6,1,17,2,8388624
+Zanzil Hunter,828,1489,Undead,1754,2,0,empty slot,0,0,0,0,0,0,8388624
+Zanzil Hunter,828,1489,Undead,1754,3,5870,NPC item,22671,2,16,1,25,0,8388624
+Zanzil Zombie,1065,1488,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Zanzil Zombie,1065,1488,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Zanzil Zombie,1065,1488,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624
+Zhevra Runner,6087,3242,Beast,0,1,0,no equipment template,0,0,0,0,0,0,0
+Zhevra Runner,6087,3242,Beast,0,2,0,no equipment template,0,0,0,0,0,0,0
+Zhevra Runner,6087,3242,Beast,0,3,0,no equipment template,0,0,0,0,0,0,0
+Ziggurat Protector,10627,12262,Undead,0,1,0,no equipment template,0,0,0,0,0,0,8388624
+Ziggurat Protector,10627,12262,Undead,0,2,0,no equipment template,0,0,0,0,0,0,8388624
+Ziggurat Protector,10627,12262,Undead,0,3,0,no equipment template,0,0,0,0,0,0,8388624

@@ -1,0 +1,6 @@
+# Replace 1 with a saved character ID from your isolated fixture account.
+# Opens that hero's active spec without spending points.
+page=talents
+hero=1
+width=1280
+height=720

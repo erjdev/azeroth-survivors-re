@@ -4,6 +4,7 @@
 #
 #   scripts/web-build.sh            # WebGPU backend (the world needs it: storage buffers)
 #   WEB_BACKEND=webgl2 scripts/web-build.sh   # WebGL2: every browser, glue screens only
+#   WEB_PROFILE=play scripts/web-build.sh    # incremental development, no wasm-opt/compression
 #   WEB_PROFILE=ship scripts/web-build.sh    # compare fat LTO against the release default
 #   WEB_DEBUG=1 scripts/web-build.sh          # keep the wasm name section (symbolic stack traces)
 #
@@ -18,22 +19,31 @@ DIST=web/dist
 BACKEND="${WEB_BACKEND:-webgpu}"
 PROFILE="${WEB_PROFILE:-release}"
 case "${PROFILE}" in
-  release|ship) ;;
-  *) echo "WEB_PROFILE must be release or ship" >&2; exit 1 ;;
+  play|release|ship) ;;
+  *) echo "WEB_PROFILE must be play, release or ship" >&2; exit 1 ;;
 esac
 WASM="target/wasm32-unknown-unknown/${PROFILE}/wenilla.wasm"
 export WASI_SDK="${WASI_SDK:-$(pwd)/tools/wasi-sdk}"
 
 command -v wasm-bindgen >/dev/null || { echo "wasm-bindgen not found — run scripts/web-setup.sh" >&2; exit 1; }
+# Fail before compiling if PATH resolves a generator for a different schema version.
+want=$(awk '{sub(/\r/,"")} /^name = "wasm-bindgen"$/{getline; sub(/\r/,""); sub(/version = /,""); gsub(/"/,""); print; exit}' Cargo.lock)
+have=$(wasm-bindgen --version | awk '{print $2}')
+if [ -z "${want}" ] || [ "${have}" != "${want}" ]; then
+  echo "wasm-bindgen ${have:-unknown} does not match Cargo.lock (${want:-missing}); run scripts/web-setup.sh" >&2
+  exit 1
+fi
 [ -d "${WASI_SDK}" ] || { echo "wasi-sdk not at ${WASI_SDK} — run scripts/web-setup.sh (or set WASI_SDK)" >&2; exit 1; }
 
 cargo build --profile "${PROFILE}" --target wasm32-unknown-unknown -p wenilla --no-default-features --features "${BACKEND}"
 
 mkdir -p "${DIST}"
 # The name section is half the file (~170 MB -> ~90 MB) and only feeds stack-trace symbols.
-strip=(--remove-name-section --remove-producers-section)
-[ "${WEB_DEBUG:-0}" = 1 ] && strip=()
-wasm-bindgen --target web --no-typescript "${strip[@]}" --out-dir "${DIST}" "${WASM}"
+bindgen_args=(--target web --no-typescript)
+if [ "${WEB_DEBUG:-0}" != 1 ]; then
+  bindgen_args+=(--remove-name-section --remove-producers-section)
+fi
+wasm-bindgen "${bindgen_args[@]}" --out-dir "${DIST}" "${WASM}"
 cp web/index.html web/favicon.svg web/wasi_stubs.js web/boot.js web/platform.js web/bridge.js "${DIST}/"
 # The bridge examples (web/README.md § "JavaScript bridge"): a HUD, an idle loop.
 mkdir -p "${DIST}/examples" && cp web/examples/*.js "${DIST}/examples/"
@@ -47,7 +57,9 @@ for m in web/boot-manifest.json web/world-manifest.json; do if [ -f "$m" ]; then
 # match what rustc emitted; without them wasm-opt refuses the module. Skipped when absent.
 WASM_OPT="${WASM_OPT:-$(pwd)/tools/binaryen/bin/wasm-opt}"
 command -v "${WASM_OPT}" >/dev/null || WASM_OPT="$(command -v wasm-opt || true)"
-if [ -n "${WASM_OPT}" ] && [ "${WEB_DEBUG:-0}" != 1 ]; then
+if [ "${PROFILE}" = play ]; then
+  echo "WEB_PROFILE=play — reusing incremental artifacts; skipping wasm-opt"
+elif [ -n "${WASM_OPT}" ] && [ "${WEB_DEBUG:-0}" != 1 ]; then
   "${WASM_OPT}" -O3 --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext \
     --enable-mutable-globals --enable-reference-types --enable-multivalue \
     "${DIST}/wenilla_bg.wasm" -o "${DIST}/wenilla_bg.wasm.opt"
@@ -61,7 +73,12 @@ fi
 # Precompressed siblings for wenilla-host's precompressed_br()/gzip(): ~90 MB of wasm goes
 # over the wire as ~15 MB without per-request CPU. brotli -q 5 is the speed/size knee.
 for f in "${DIST}"/*.wasm "${DIST}"/*.js; do
-  command -v brotli >/dev/null && brotli -f -q 5 "$f" -o "$f.br"
-  command -v gzip >/dev/null && gzip -kf -6 "$f"
+  # The host prefers these siblings. Remove old copies even if this build skips
+  # compression or the corresponding compressor is no longer installed.
+  rm -f "$f.br" "$f.gz"
+  if [ "${PROFILE}" != play ]; then
+    command -v brotli >/dev/null && brotli -f -q 5 "$f" -o "$f.br"
+    command -v gzip >/dev/null && gzip -kf -6 "$f"
+  fi
 done
 ls -la "${DIST}"

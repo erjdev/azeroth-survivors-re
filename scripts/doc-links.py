@@ -30,6 +30,7 @@ def run_rustdoc() -> str:
         capture_output=True,
         text=True,
     )
+    out.check_returncode()
     return out.stderr + out.stdout
 
 
@@ -59,7 +60,15 @@ def main() -> int:
         print(__doc__.strip())
         return 0
     report = "--report" in sys.argv
-    text = run_rustdoc()
+    try:
+        text = run_rustdoc()
+    except subprocess.CalledProcessError as error:
+        print(f"doc-links FAILED: cargo doc exited with {error.returncode}", file=sys.stderr)
+        print((error.stderr or "") + (error.stdout or ""), file=sys.stderr)
+        return 1
+    except OSError as error:
+        print(f"doc-links FAILED: could not run cargo doc: {error}", file=sys.stderr)
+        return 1
     found = re.findall(r"warning: unresolved link to `([^`]+)`\n\s*--> ([^\s:]+):(\d+)", text)
 
     names = declared_names()

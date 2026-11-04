@@ -154,9 +154,12 @@ echo "ALL GATES GREEN ($((SECONDS - chain_t0)) s; per-gate seconds in $timing)"
 note_timing chain "$((SECONDS - chain_t0))" ok
 
 # Stamp only if the tree still hashes as it did at the start: an edit during the run would
-# otherwise memoize a green for a tree the chain never saw.
+# otherwise memoize a green for source the chain never saw. Docs-only progress
+# updates are gate-inert, just as in the memo lookup above.
 key_end="$(tree_key || true)"
-if [ -n "$key_end" ] && [ "$key_end" = "$key_start" ] && [ -d target ]; then
+if [ -n "$key_end" ] && [ -n "$key_start" ] && [ -d target ] &&
+    [ "${key_end#*|}" = "${key_start#*|}" ] &&
+    { [ "$key_end" = "$key_start" ] || docs_only_delta "${key_start%%|*}" "${key_end%%|*}"; }; then
     printf '%s|%s%s\n' "$key_end" "$wow_data" "$corpus" > "$stamp" 2>/dev/null || true
 fi
 

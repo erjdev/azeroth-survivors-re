@@ -1,3 +1,6 @@
+#ifdef SURVIVORS_CUTAWAY
+#import "embedded://benilla_assets/shaders/survivors_cutaway.wgsl"::cutaway_keep
+#endif
 // The retained static-world pass: `wow_model.wgsl`'s shading for statics that never fade or
 // animate (ADT doodads, WMO groups, interior M2 props), with per-vertex flag words and a per-item
 // record in place of materials. `StaticGx::divert` admits opaque and alpha-tested batches with no
@@ -31,6 +34,14 @@ struct WowLight {
     points: array<vec4<f32>, 512>,
     // lighting::prop_probes: 8192 slots of 7 rows; the buffer's later regions are not mirrored.
     prop_probes: array<vec4<f32>, 57344>,
+#ifdef SURVIVORS_CUTAWAY
+    rig_table: array<u32, 2048>,
+    rig_tint: array<u32, 2048>,
+    rig_origin: array<vec4<f32>, 2048>,
+    matanim: array<vec4<f32>, 2048>,
+    water_clip: array<vec2<f32>, 2048>,
+    palettes: array<vec4<f32>>,
+#endif
 }
 @group(0) @binding(1) var<storage, read> wow_light: WowLight;
 
@@ -179,6 +190,14 @@ fn vertex(v: GxVertex) -> GxVsOut {
 
 @fragment
 fn fragment(in: GxVsOut) -> @location(0) vec4<f32> {
+#ifdef SURVIVORS_CUTAWAY
+    let tail = arrayLength(&wow_light.palettes) - 2u;
+    // This pass contains only scenery, including WMO buildings.
+    if (!cutaway_keep(in.world_position.xyz, in.position.xy,
+        wow_light.palettes[tail], wow_light.palettes[tail + 1u])) {
+        discard;
+    }
+#endif
     // The hard farclip wall: per-pixel planar eye-Z, the same plane as the entity path.
     let eye_z = -(view.view_from_world * vec4<f32>(in.world_position.xyz, 1.0)).z;
     if (wow_light.fog_params.w > 0.0 && eye_z > wow_light.fog_params.w) {

@@ -307,6 +307,8 @@ fn prepare_static_gx(
         for cutout in [false, true] {
             for two_sided in [false, true] {
                 let mut defs = vec![];
+                #[cfg(feature = "survivors-visibility")]
+                defs.push(ShaderDefVal::from("SURVIVORS_CUTAWAY"));
                 if cutout {
                     defs.push(ShaderDefVal::from("GX_CUTOUT"));
                 }

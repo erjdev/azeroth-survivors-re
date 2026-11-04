@@ -1,0 +1,4 @@
+page=heroes
+category=manage
+width=1600
+height=900

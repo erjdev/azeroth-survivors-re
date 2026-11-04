@@ -9,6 +9,7 @@ description = "Bevy AssetSource + AssetLoaders over the WoW 1.12.1 MPQ patch cha
 workspace = true
 
 [features]
+survivors-visibility = []
 # The dev/player seam, on by default. `benilla-formats` comes in without default features and its
 # `dev` is forwarded here, or unification would put it back in a player build.
 default = ["dev"]

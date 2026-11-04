@@ -1,0 +1,6 @@
+page=cards
+width=640
+height=720
+hero=4
+abilities=deadly_poison:1
+profile=selected

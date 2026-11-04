@@ -1,0 +1,4 @@
+page = cards
+width = 1280
+height = 720
+abilities = ghostly_strike:0, ghostly_strike:1, ghostly_strike:4

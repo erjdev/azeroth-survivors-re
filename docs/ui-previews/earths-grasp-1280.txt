@@ -1,0 +1,6 @@
+page=talents
+width=1280
+height=720
+hero=6
+talent=572
+scale=1

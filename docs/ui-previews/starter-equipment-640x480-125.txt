@@ -1,0 +1,6 @@
+# Pair with collected or partial to inspect starter equipment and Collection navigation.
+page = starter
+width = 640
+height = 480
+scale = 1.25
+hero = 1

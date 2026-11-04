@@ -1,0 +1,5 @@
+page=drops
+zone=Elwynn Forest
+piece=common:helm
+width=640
+height=720

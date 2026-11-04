@@ -144,7 +144,8 @@ pub(crate) fn float_combat_text(
     globals: Query<&GlobalTransform>,
     mounts: Query<(), With<crate::entities::mount::MountChild>>,
     // Claim bucket 1, rebuilt every pass; plates own bucket 0.
-    mut bucket: Local<crate::smart_rect::SmartBucket>,
+    #[cfg(not(feature = "survivors-text"))] mut bucket: Local<crate::smart_rect::SmartBucket>,
+    #[cfg(feature = "survivors-text")] mut bucket: Local<crate::survivors::text_placement::Bucket>,
     // Absent in a bare test world, which draws the default face.
     font: Option<Res<DamageTextFont>>,
 ) {

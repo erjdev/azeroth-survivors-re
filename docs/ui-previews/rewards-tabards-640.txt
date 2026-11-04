@@ -1,0 +1,4 @@
+page = rewards
+category = tabards
+width = 640
+height = 720

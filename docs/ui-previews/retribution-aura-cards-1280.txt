@@ -1,0 +1,5 @@
+page=cards
+width=1280
+height=720
+scale=1
+abilities=retribution_aura:0,retribution_aura:1,retribution_aura:5

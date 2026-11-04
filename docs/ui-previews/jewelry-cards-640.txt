@@ -1,0 +1,4 @@
+page = cards
+width = 640
+height = 720
+jewelry = legend:rejuvenation, legend:power_word_shield, ring:0, trinket:0

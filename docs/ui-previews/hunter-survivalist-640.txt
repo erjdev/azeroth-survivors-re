@@ -1,0 +1,5 @@
+# Select a Hunter first. Inspects the saved spec without spending points.
+page = talents
+width = 640
+height = 720
+talent = 1622

@@ -1,0 +1,5 @@
+# Druid legendary detail; inspection does not grant discovery.
+page=codex
+entry=legend:wrath
+width=1280
+height=720

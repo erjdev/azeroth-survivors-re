@@ -1,0 +1,4 @@
+# Current Character page; uses the selected saved hero.
+page = heroes
+width = 640
+height = 480

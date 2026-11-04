@@ -230,6 +230,33 @@ impl Marks {
         }
     }
 
+    /// Remove only the replaced spell's visual; unrelated debuffs retain their slots.
+    pub(super) fn remove(&mut self, spell: u32) {
+        for slot in &mut self.slots {
+            if slot.0 == spell {
+                *slot = (0, 0.0);
+                self.dirty = true;
+            }
+        }
+    }
+
+    /// Keep the gameplay mark visible even when ordinary debuff slots are full.
+    pub(super) fn hunter_mark(&mut self, remaining: f32) {
+        let current = self.slots.iter().position(|s| s.0 == 1130);
+        if remaining > 0.0 {
+            let slot = current
+                .or_else(|| self.slots.iter().position(|s| s.0 == 0))
+                .unwrap_or(7);
+            if self.slots[slot].0 != 1130 {
+                self.dirty = true;
+            }
+            self.slots[slot] = (1130, remaining);
+        } else if let Some(slot) = current {
+            self.slots[slot] = (0, 0.0);
+            self.dirty = true;
+        }
+    }
+
     /// Exactly these spells, held until changed.
     pub fn set(&mut self, spells: &[u32]) {
         let mut want = [(0u32, f32::INFINITY); 8];
@@ -310,6 +337,24 @@ pub(super) struct Fx<'w> {
 const MAX_VISUAL_HITS: usize = 12;
 
 impl Fx<'_> {
+    pub fn begin_cast(&mut self, caster: Entity, spell: u32) {
+        self.casts.write(CastEvent {
+            entity: caster,
+            spell_id: spell,
+            kind: CastEventKind::Start,
+            seq: self.seq.next(),
+        });
+    }
+
+    pub fn cancel_cast(&mut self, caster: Entity, spell: u32) {
+        self.casts.write(CastEvent {
+            entity: caster,
+            spell_id: spell,
+            kind: CastEventKind::Fail,
+            seq: self.seq.next(),
+        });
+    }
+
     /// `SMSG_SPELL_GO`: the cast kit on the caster, and a missile or an impact at each hit.
     pub fn cast(&mut self, caster: Entity, spell: u32, hits: &[Entity], dest: Option<Vec3>) {
         let seq = self.seq.next();
@@ -357,6 +402,28 @@ impl Fx<'_> {
         });
     }
 
+    /// A real dodge uses the existing defender animation and suppresses hit flinch/blood.
+    pub fn dodge(&mut self, attacker: Entity, victim: Entity) {
+        self.avoidance(attacker, victim, 2);
+    }
+
+    pub fn parry(&mut self, attacker: Entity, victim: Entity) {
+        self.avoidance(attacker, victim, 3);
+    }
+
+    fn avoidance(&mut self, attacker: Entity, victim: Entity, victim_state: u32) {
+        let seq = self.seq.next();
+        self.swings.write(SwingMessage {
+            attacker,
+            victim: Some(victim),
+            hit_info: 0,
+            victim_state,
+            damage: 0,
+            displayed: false,
+            seq,
+        });
+    }
+
     /// A floating number over `anchor`, 0xAARRGGBB.
     pub fn number(&mut self, anchor: Entity, amount: f32, crit: bool, color: u32) {
         let shown = amount.round().max(1.0) as i64;
@@ -373,3 +440,45 @@ pub(super) const COLOR_SPELL: u32 = 0xFFFF_DE00;
 pub(super) const COLOR_MELEE: u32 = 0xFFFF_FFFF;
 pub(super) const COLOR_HURT: u32 = 0xFFFF_3030;
 pub(super) const COLOR_HEAL: u32 = 0xFF30_FF30;
+
+#[cfg(test)]
+mod hunter_mark_tests {
+    use super::*;
+    #[test]
+    fn mark_state_kit_has_priority_and_explicit_removal_preserves_other_slots() {
+        let mut slots = Marks::debuffs();
+        for spell in 1..=8 {
+            slots.add(spell, 10.0);
+        }
+        slots.hunter_mark(120.0);
+        assert_eq!(slots.slots[7], (1130, 120.0));
+        slots.hunter_mark(20.0);
+        assert_eq!(slots.slots[7], (1130, 20.0));
+        slots.hunter_mark(0.0);
+        assert_eq!(slots.slots[7], (0, 0.0));
+        assert_eq!(slots.slots[0], (1, 10.0));
+        assert_eq!(slots.slots.iter().filter(|s| s.0 != 0).count(), 7);
+    }
+}
+
+#[cfg(test)]
+mod curse_mark_tests {
+    use super::*;
+    #[test]
+    fn removing_a_replaced_curse_preserves_unrelated_marks() {
+        let mut marks = Marks::debuffs();
+        marks.add(980, 12.);
+        marks.add(172, 10.);
+        marks.dirty = false;
+        marks.remove(980);
+        assert!(marks.dirty);
+        assert!(!marks.slots.iter().any(|s| s.0 == 980));
+        assert!(marks.slots.contains(&(172, 10.)));
+        marks.add(702, 12.);
+        marks.remove(702);
+        assert!(marks.slots.contains(&(172, 10.)));
+        marks.dirty = false;
+        marks.remove(702);
+        assert!(!marks.dirty);
+    }
+}

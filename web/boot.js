@@ -243,7 +243,7 @@ function createBootUi() {
     <div class="embers"></div>
     <div class="box">
       <div class="title">Azeroth Survivors</div>
-      <div class="by">a fan-made roguelike by Aethus</div>
+      <div class="by">Inspired by Aethus’s Azeroth Survivors</div>
       <div class="stage">Loading…</div>
       <div class="bar"><i></i></div>
       <div class="data"></div>

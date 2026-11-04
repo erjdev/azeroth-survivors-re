@@ -1,0 +1,6 @@
+# Use the partial fixture; select 125% Interface size in Graphics for the scaled checkpoint.
+page = collection
+hero = 1
+piece = common:helm
+width = 800
+height = 600

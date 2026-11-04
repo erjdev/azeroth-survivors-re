@@ -1,0 +1,4 @@
+page = collection
+width = 640
+height = 720
+piece = poor:hands
