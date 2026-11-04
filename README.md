@@ -17,6 +17,11 @@ scope, including content and screens that are not complete yet.
 Follow the concise [milestone changelog](docs/CHANGELOG.md) for feature summaries and screenshots.
 The [current acceptance status](docs/SURVIVORS-STATUS.md) summarizes remaining work and design decisions.
 
+Improved Enrage now gives permanent Bear builds scoped recovery training.
+Its purchase/refund/spec/restart checks pass at wide and compact sizes.
+
+![Improved Enrage upgrade](docs/images/screenshots/2026-11-04-improved-enrage/upgrade-wide.jpg)
+
 Feral Aggression now strengthens Roar and Bite, with separate green inline upgrades.
 Purchase/refund/spec/restart checks pass at wide and compact sizes.
 

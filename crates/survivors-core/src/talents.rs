@@ -683,6 +683,12 @@ impl Milestones {
                     TalentStat::FeralAggression if key == "ferocious_bite" => {
                         effect.damage *= 1.0 + value * 0.03;
                     }
+                    TalentStat::BearCooldown
+                        if self.druid_form() == Some(forms::DruidForm::Bear)
+                            && matches!(key, "Maul" | "swipe" | "bash" | "demoralizing_roar") =>
+                    {
+                        effect.cooldown *= 1.0 - value;
+                    }
                     TalentStat::FeralCooldown
                         if matches!(
                             self.druid_form(),
@@ -1856,6 +1862,7 @@ pub enum TalentStat {
     FeralAttackCrit,
     FormCooldown,
     FeralCooldown,
+    BearCooldown,
     FeralAggression,
     FelineSwiftness,
     CreatureDamage { mask: u32, critical: bool },
@@ -2451,6 +2458,7 @@ impl TalentDefinition {
             | TalentStat::PredatoryStrikes
             | TalentStat::FeralAttackCrit
             | TalentStat::FormCooldown
+            | TalentStat::BearCooldown
             | TalentStat::FeralCooldown
             | TalentStat::FeralAggression
             | TalentStat::FelineSwiftness
@@ -2719,6 +2727,7 @@ impl TalentDefinition {
             }
             TalentStat::Cooldown
             | TalentStat::FormCooldown
+            | TalentStat::BearCooldown
             | TalentStat::FeralCooldown
             | TalentStat::SpellCooldown(_)
             | TalentStat::SpellGroupCooldown(_) => (100.0, "% cooldown reduction"),
@@ -4443,6 +4452,7 @@ pub fn stat_adjustment(class: usize, ranks: &[(u8, u32, u8)]) -> crate::campaign
             | TalentStat::PredatoryStrikes
             | TalentStat::FeralAttackCrit
             | TalentStat::FormCooldown
+            | TalentStat::BearCooldown
             | TalentStat::FeralCooldown
             | TalentStat::FeralAggression
             | TalentStat::FelineSwiftness
@@ -6019,6 +6029,7 @@ mod stat_talent_tests {
                     | TalentStat::PredatoryStrikes
                     | TalentStat::FeralAttackCrit
                     | TalentStat::FormCooldown
+                    | TalentStat::BearCooldown
                     | TalentStat::FeralCooldown
                     | TalentStat::FeralAggression
                     | TalentStat::FelineSwiftness

@@ -5,6 +5,14 @@ Detailed changes remain in Git; unfinished work remains in the [implementation p
 
 
 
+## 2026-11-04 — Bear recovery training
+
+Improved Enrage converts Rage into Bear-only attack recovery, with inline green
+upgrades and no extra ability. Purchase/refund/spec/restart, runtime consumers
+and native/WebGPU builds pass. [Evidence and limits](audits/DRUID-IMPROVED-ENRAGE.md).
+
+![Improved Enrage upgrade](images/screenshots/2026-11-04-improved-enrage/upgrade-wide.jpg)
+
 ## 2026-11-04 — Feral Aggression
 
 Feral training now strengthens Roar and Ferocious Bite independently, with both

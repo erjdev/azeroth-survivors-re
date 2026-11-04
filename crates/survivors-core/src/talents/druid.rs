@@ -29,6 +29,7 @@ const ALL_FERAL_ATTACKS: &[&str] = &[
 ];
 const BALANCE: &[&str] = &["wrath", "moonfire", "starfire"];
 pub(super) const DEFINITIONS: &[TalentDefinition] = &[
+    TalentDefinition { id: 826, max_rank: 2, name: "Improved Enrage", description: "While Bear is selected: Maul, Swipe, Bash and Demoralizing Roar have 5% shorter cooldown per rank, multiplying haste and other recovery bonuses. Active throughout the run; no effect on other forms, caster spells or healing. Adds no ability or resource (Survivors Enrage/Rage conversion)", stat: TalentStat::BearCooldown, per_rank: 0.05 },
     TalentDefinition { id: 795, max_rank: 5, name: "Feral Aggression", description: "Demoralizing Roar: +8% reduction strength per rank. Ferocious Bite: +3% damage per rank. Multiplies existing effects; does not grant either ability. Roar requires Bear; Bite requires Cat", stat: TalentStat::FeralAggression, per_rank: 1.0 },
     TalentDefinition { id: 800, max_rank: 2, name: "Blood Frenzy", description: "While Cat is selected: effective Claw, Rake and Shred criticals have 50% chance per rank to recover 0.5 sec of that attack's remaining cooldown. Shared internal cooldown: 1 sec, reduced by haste. Excludes bleeds, pets, splash copies and generated hits; no stored refunds or combo points", stat: TalentStat::BloodFrenzy, per_rank: 0.5 },
     TalentDefinition { id: 801, max_rank: 2, name: "Primal Fury", description: "While Bear is selected: effective Maul and Swipe criticals have 50% chance per rank to recover 0.5 sec of that attack's remaining cooldown. Shared internal cooldown: 1 sec, reduced by haste. Excludes periodic damage, pets, splash copies and generated hits; no stored refunds (Survivors Rage conversion)", stat: TalentStat::PrimalFury, per_rank: 0.5 },
@@ -1641,5 +1642,61 @@ mod feral_aggression_tests {
             assert_eq!(values, expected);
         }
         assert_eq!(node.inline_description(255), node.inline_description(5));
+    }
+}
+
+#[cfg(test)]
+mod improved_enrage_tests {
+    use crate::{
+        data,
+        talents::{forms::DruidForm, talent_definition, Milestones},
+    };
+
+    #[test]
+    fn enrage_conversion_is_bear_only_scoped_capped_and_refundable() {
+        for class in 0..9 {
+            for form in [None].into_iter().chain(DruidForm::ALL.map(Some)) {
+                for rank in [0, 1, 2, 255] {
+                    let base_ranks: Vec<_> = form
+                        .into_iter()
+                        .map(|f| (f.tree(), f.talent(), 1))
+                        .collect();
+                    let base = Milestones {
+                        class,
+                        ..Default::default()
+                    }
+                    .with_ranks(&base_ranks);
+                    let mut ranks = base_ranks.clone();
+                    ranks.push((2, 826, rank));
+                    let trained = base.with_ranks(&ranks);
+                    for key in data::ABILITIES.iter().map(|d| d.key).chain([
+                        "Claw",
+                        "Maul",
+                        "Weapon Attack",
+                    ]) {
+                        let mut expected = base.cast(key);
+                        if class == 8
+                            && form == Some(DruidForm::Bear)
+                            && matches!(key, "Maul" | "swipe" | "bash" | "demoralizing_roar")
+                        {
+                            expected.cooldown *= 1. - 0.05 * f32::from(rank.min(2));
+                        }
+                        assert_eq!(trained.cast(key), expected, "{class}/{form:?}/{rank}/{key}");
+                        assert_eq!(trained.with_ranks(&base_ranks).cast(key), base.cast(key));
+                        assert_eq!(trained.ability_unlocked(key), base.ability_unlocked(key));
+                    }
+                    assert_eq!(
+                        trained.starting_abilities(data::CLASSES[class].start),
+                        base.starting_abilities(data::CLASSES[class].start)
+                    );
+                }
+            }
+        }
+        let node = talent_definition(8, 826).unwrap();
+        let (text, spans) = node.inline_description_with_values(1).unwrap();
+        assert!(text.contains("5 » 10% shorter cooldown"), "{text}");
+        assert!(spans
+            .iter()
+            .any(|s| text[s.clone()].contains("5 » 10% shorter cooldown")));
     }
 }

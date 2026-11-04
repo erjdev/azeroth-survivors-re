@@ -586,3 +586,57 @@ fn feral_aggression_reaches_bite_hits_and_roar_settlement_at_every_rank() {
         }
     }
 }
+
+#[test]
+fn improved_enrage_multiplies_actual_bear_recovery_without_changing_hits() {
+    for key in ["swipe", "bash", "demoralizing_roar", "Maul", "wrath"] {
+        for rank in [1, 2] {
+            let mut results = Vec::new();
+            for trained in [false, true] {
+                let automatic = key == "Maul";
+                let (mut app, _) =
+                    setup(Some(DruidForm::Bear), if automatic { "swipe" } else { key });
+                {
+                    let mut run = app.world_mut().resource_mut::<Run>();
+                    let mut ranks =
+                        vec![(1, DruidForm::Bear.talent(), 1), (1, 796, 5), (1, 799, 5)];
+                    if trained {
+                        ranks.push((2, 826, rank));
+                    }
+                    run.milestones = run.milestones.with_ranks(&ranks);
+                    run.renown_celerity = 10;
+                    run.bonus.cooldown = 0.2;
+                    if automatic {
+                        run.abilities.clear();
+                        run.weapon_attack_cd = 0.;
+                    }
+                }
+                app.world_mut().run_system_once(cast_abilities).unwrap();
+                let run = app.world().resource::<Run>();
+                let cd = if automatic {
+                    run.weapon_attack_cd
+                } else {
+                    run.abilities[0].cd
+                };
+                assert!(cd > 0.2);
+                let hits: Vec<_> = app
+                    .world()
+                    .resource::<Messages<Hit>>()
+                    .iter_current_update_messages()
+                    .map(|h| (h.damage, h.dot, h.effect))
+                    .collect();
+                results.push((cd, hits));
+            }
+            let multiplier = if key == "wrath" {
+                1.
+            } else {
+                1. - f32::from(rank) * 0.05
+            };
+            assert!(
+                (results[1].0 - results[0].0 * multiplier).abs() < 0.001,
+                "{key}/{rank}"
+            );
+            assert_eq!(results[0].1, results[1].1, "{key}/{rank}");
+        }
+    }
+}

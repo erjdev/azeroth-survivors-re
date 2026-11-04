@@ -13,10 +13,8 @@ Survivors conversions remain distinct.
 
 ## Current remaining dependencies — 2026-11-04
 
-The fresh installed-data audit reports **43/47 Druid definitions**, leaving these
-4 nodes: Feral Aggression, Feral
-Charge, Faerie Fire (Feral) and
-Improved Enrage. The table below preserves the original reference evidence;
+The fresh installed-data audit reports **45/47 Druid definitions**, leaving these
+2 nodes: Feral Charge and Faerie Fire (Feral). The table below preserves the original reference evidence;
 it is not the current list of missing implementations.
 
 [Tranquility](DRUID-TRANQUILITY.md) now supplies the moving periodic-healing
@@ -27,8 +25,9 @@ consumer for Improved Tranquility and the scoped Restoration talents.
 [physical talent scope](DRUID-FERAL-PHYSICAL.md) supersede their historical blockers.
 
 Next implementation groups should preserve the approved resource-free policy:
-Feral Charge movement/control, Roar and Faerie Fire debuffs, and replacements for
-Enrage resources. [Blood Frenzy](DRUID-BLOOD-FRENZY.md), Omen and persistent feral recovery
+Feral Charge movement/control and [Faerie Fire](DRUID-FAERIE-FIRE.md).
+[Feral Aggression](DRUID-FERAL-AGGRESSION.md) and
+[Improved Enrage](DRUID-IMPROVED-ENRAGE.md) now have verified consumers. [Blood Frenzy](DRUID-BLOOD-FRENZY.md), Omen and persistent feral recovery
 now have consumers; retain shared starter-kit accounting for remaining grants. Do not add combo points, stealth or positional conditions.
 New tree-granted attacks must replace or augment a starter where necessary to
 keep every build within three slotted starting abilities and six during a run.

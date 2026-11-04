@@ -1,5 +1,15 @@
 # Survivors implementation contract
 
+## Improved Enrage — 2026-11-04
+
+The Rage conversion now gives Bear's Maul, Swipe, Bash and Roar 5/10% shorter
+recovery, with green inline previews and no additional ability. Core/runtime,
+purchase/refund/spec/restart and native/WebGPU checks pass. Druid coverage is
+45/47, overall 339/432. [Evidence and limits](audits/DRUID-IMPROVED-ENRAGE.md).
+[Faerie Fire's next implementation](audits/DRUID-FAERIE-FIRE.md) retains the
+three-starting-ability limit; Feral Charge's movement choice is still pending.
+
+
 ## Feral Aggression — 2026-11-04
 
 Five ranks now strengthen Roar by 8% and Bite damage by 3% per rank, without
